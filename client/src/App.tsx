@@ -1,14 +1,11 @@
 import './App.css'
+import LandingPage from './pages/landing_page'
 
 function App() {
 
   return (
     <>
-      <div>
-
-        <h1>Welcome to the View Rush!! Find the optimal time to your YouTube Success!!</h1>
-
-      </div>
+      <LandingPage />
     </>
   )
 }
