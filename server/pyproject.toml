@@ -1,7 +1,9 @@
 [project]
-name = "server"
+name = "view-rush-server"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+description = "view-rush server"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "fastapi>=0.116.1",
+    "uvicorn>=0.35.0",
+]
