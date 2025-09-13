@@ -1,9 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
 from src.api import api_router
 from src.middleware.auth_middleware import add_security_headers, RateLimitMiddleware
-
+from src.core.config import settings
 
 app = FastAPI(
     title="View Rush",
@@ -32,7 +31,7 @@ app.middleware("http")(add_security_headers)
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost,https://localhost").split(","),
+    allow_origins=settings.cors_origins.split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
