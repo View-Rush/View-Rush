@@ -15,6 +15,7 @@ import {
   ExternalLink,
   RefreshCw
 } from "lucide-react";
+import Header from "@/components/layout/Header";
 
 const Trending = () => {
   const [selectedCountry, setSelectedCountry] = useState("United States");
@@ -105,8 +106,9 @@ const Trending = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-card">
-      {/* Header */}
+    <div className="min-h-screen bg-background">
+      <Header />
+      {/* Content Header */}
       <div className="bg-background/80 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">

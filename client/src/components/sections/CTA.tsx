@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const CTA = () => {
+  const navigate = useNavigate();
   return (
     <section className="py-24 bg-gradient-hero relative overflow-hidden">
       {/* Background effects */}
@@ -38,6 +40,7 @@ export const CTA = () => {
               variant="hero" 
               size="lg" 
               className="text-lg px-10 py-5 bg-white text-primary hover:bg-white/90 shadow-xl hover:shadow-2xl transform hover:scale-105"
+              onClick={() => navigate('/auth')}
             >
               Get Started Free
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -46,6 +49,7 @@ export const CTA = () => {
               variant="outline" 
               size="lg" 
               className="text-lg px-10 py-5 bg-transparent border-white/40 text-white hover:bg-white/10 backdrop-blur-sm"
+              onClick={() => navigate('/auth')}
             >
               Book a Demo
             </Button>

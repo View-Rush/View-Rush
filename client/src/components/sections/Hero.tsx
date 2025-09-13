@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, TrendingUp, Users, BarChart3 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import heroDashboard from "@/assets/hero-dashboard.jpg";
 
 export const Hero = () => {
+  const navigate = useNavigate();
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background gradient */}
@@ -41,7 +43,12 @@ export const Hero = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <Button variant="hero" size="lg" className="text-lg px-8 py-4">
+            <Button 
+              variant="hero" 
+              size="lg" 
+              className="text-lg px-8 py-4"
+              onClick={() => navigate('/auth')}
+            >
               Start Free Analysis
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -49,6 +56,7 @@ export const Hero = () => {
               variant="outline" 
               size="lg" 
               className="text-lg px-8 py-4 bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm"
+              onClick={() => window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank')}
             >
               <Play className="mr-2 h-5 w-5" />
               Watch Demo
