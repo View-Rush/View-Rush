@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.api import api_router
-from src.middleware.auth_middleware import add_security_headers, RateLimitMiddleware
+from src.middleware import add_security_headers, rate_limit_middleware
 from src.core.config import settings
 
 app = FastAPI(
@@ -21,12 +21,15 @@ app = FastAPI(
     }
 )
 
+print(f"Starting {settings.app_name}...")
+print(f"Debug mode is {'on' if settings.debug else 'off'}")
+
+
 # Security middleware
 app.middleware("http")(add_security_headers)
 
 # Rate limiting middleware
-# rate_limiter = RateLimitMiddleware(max_requests=1000, window_seconds=3600)
-# app.middleware("http")(rate_limiter)
+# app.middleware("http")(rate_limit_middleware)
 
 # CORS middleware
 app.add_middleware(
