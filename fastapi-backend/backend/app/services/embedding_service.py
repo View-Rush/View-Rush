@@ -59,7 +59,7 @@ def _lazy_load_models():
     with _models_lock:
         if _models["ner"] is None:
             # NER
-            _models["ner"] = pipeline("ner", model="dslim/bert-base-NER", aggregation_strategy="simple")
+            _models["ner"] = pipeline("ner", model="tner/twitter-roberta-base-dec2021-tweetner7-all", aggregation_strategy="simple")
             logging.info("NER pipeline loaded.")
 
         if _models["classifier"] is None:
@@ -69,7 +69,7 @@ def _lazy_load_models():
 
         if _models["embedder"] is None:
             # Sentence embedder
-            _models["embedder"] = SentenceTransformer("all-MiniLM-L6-v2")
+            _models["embedder"] = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
             logging.info("SentenceTransformer embedder loaded.")
 
 def clean_text(text: Optional[str]) -> str:

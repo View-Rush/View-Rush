@@ -1,5 +1,6 @@
 # app/routers/profile_embedding.py
 import logging
+import numpy as np
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any, Optional
 from app.models.embedding_models import ChannelResponseIn, EmbeddingOut, VideoIn
@@ -48,14 +49,14 @@ def build_channel_embedding(payload: ChannelResponseIn):
     final_videos = []
     for v in videos:
         el = extract_entities_and_link(v)
-        topic_info = score_topics(v) if (len(el.get("mentions", [])) <= 10) else {"topics": [], "scores": []}
+        #topic_info = score_topics(v) if (len(el.get("mentions", [])) <= 10) else {"topics": [], "scores": []}
         final_videos.append({
             "clean_title": v.get("clean_title"),
             "clean_description": v.get("clean_description"),
             "view_count": v.get("view_count", 0),
-            "linked_entities": el.get("linked_entities", []),
-            "topics": topic_info.get("topics", []),
-            "scores": topic_info.get("scores", [])
+            "linked_entities": el.get("linked_entities", [])
+            #"topics": topic_info.get("topics", []),
+            #"scores": topic_info.get("scores", [])
         })
 
     # Step 4: Embedding + weighting
