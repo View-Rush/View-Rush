@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from '@/hooks/use-toast';
 import { youtubeService } from '@/services/youtubeService';
+import { APIKeyDebugger } from '@/components/ui/api-key-debugger';
 import Header from "@/components/layout/Header";
 
 interface TrendingVideo {
@@ -85,16 +86,38 @@ const Trending = () => {
   const loadTrendingVideos = async () => {
     try {
       setLoading(true);
+      console.log('Loading trending videos...', { country: selectedCountry, category: selectedCategory });
+      
+      // Check if API key is configured
+      if (!import.meta.env.VITE_YOUTUBE_API_KEY) {
+        throw new Error('YouTube API key not configured');
+      }
+      
       const videos = await youtubeService.getTrendingVideos(
         selectedCountry,
         selectedCategory === "0" ? undefined : selectedCategory
       );
+      
+      console.log('Trending videos loaded:', videos.length);
       setTrendingVideos(videos);
+      
+      if (videos.length === 0) {
+        toast({
+          title: "No Videos Found",
+          description: "No trending videos found for the selected filters.",
+        });
+      }
     } catch (error) {
       console.error('Error loading trending videos:', error);
+      
+      let errorMessage = "Failed to load trending videos. Please try again.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to load trending videos. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -264,6 +287,43 @@ const Trending = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Debug Panel - Development Only */}
+        {process.env.NODE_ENV === 'development' && (
+          <>
+            <APIKeyDebugger />
+            <Card className="mb-6 border-orange-200 bg-orange-50">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-sm text-orange-800">Debug Info</h4>
+                  <Badge variant="outline" className="text-xs">
+                    {import.meta.env.VITE_YOUTUBE_API_KEY ? 'API Key Set' : 'API Key Missing'}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-orange-700">
+                  <div>
+                    <strong>Total Videos:</strong> {trendingVideos.length}
+                  </div>
+                  <div>
+                    <strong>Filtered:</strong> {filteredVideos.length}
+                  </div>
+                  <div>
+                    <strong>Loading:</strong> {loading ? 'Yes' : 'No'}
+                  </div>
+                </div>
+                <Button 
+                  onClick={loadTrendingVideos} 
+                  size="sm" 
+                  variant="outline" 
+                  className="mt-2"
+                  disabled={loading}
+                >
+                  Test API Call
+                </Button>
+              </CardContent>
+            </Card>
+          </>
+        )}
 
         {/* Video List */}
         {filteredVideos.length === 0 && !loading ? (

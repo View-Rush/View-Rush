@@ -732,26 +732,51 @@ class YouTubeService {
 
   async getTrendingVideos(regionCode: string = 'US', categoryId?: string): Promise<any[]> {
     try {
+      console.log('Fetching trending videos...', { regionCode, categoryId });
+      
+      // Check API key
+      const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
+      if (!apiKey) {
+        throw new Error('YouTube API key not configured. Please check your .env file.');
+      }
+      
       const url = new URL('https://www.googleapis.com/youtube/v3/videos');
       url.searchParams.append('part', 'snippet,statistics,contentDetails');
       url.searchParams.append('chart', 'mostPopular');
       url.searchParams.append('regionCode', regionCode);
       url.searchParams.append('maxResults', '50');
-      url.searchParams.append('key', import.meta.env.VITE_YOUTUBE_API_KEY);
+      url.searchParams.append('key', apiKey);
       
       if (categoryId) {
         url.searchParams.append('videoCategoryId', categoryId);
       }
 
+      console.log('YouTube API request URL:', url.toString().replace(apiKey, 'API_KEY_HIDDEN'));
+
       const response = await fetch(url.toString());
       
       if (!response.ok) {
-        throw new Error(`YouTube API error: ${response.status}`);
+        const errorData = await response.json().catch(() => null);
+        console.error('YouTube API error response:', errorData);
+        
+        if (response.status === 403) {
+          throw new Error('YouTube API quota exceeded or invalid API key');
+        } else if (response.status === 400) {
+          throw new Error('Invalid request parameters');
+        } else {
+          throw new Error(`YouTube API error: ${response.status} ${response.statusText}`);
+        }
       }
 
       const data = await response.json();
+      console.log('YouTube API response:', { itemCount: data.items?.length, totalResults: data.pageInfo?.totalResults });
       
-      return data.items.map((item: any) => ({
+      if (!data.items || data.items.length === 0) {
+        console.warn('No trending videos found in API response');
+        return [];
+      }
+
+      const mappedVideos = data.items.map((item: any) => ({
         id: item.id,
         title: item.snippet.title,
         channelTitle: item.snippet.channelTitle,
@@ -763,6 +788,9 @@ class YouTubeService {
         thumbnails: item.snippet.thumbnails,
         categoryId: item.snippet.categoryId
       }));
+      
+      console.log('Mapped trending videos:', mappedVideos.length);
+      return mappedVideos;
     } catch (error) {
       console.error('Error fetching trending videos:', error);
       throw error;

@@ -28,6 +28,7 @@ import { ChannelConnectionsList } from '@/components/ui/channel-connections-list
 import { ConnectChannelButton } from '@/components/ui/connect-channel-button';
 import { YouTubeConnectionTest } from '@/components/ui/youtube-connection-test';
 import { AuthDebugTest } from '@/components/ui/auth-debug-test';
+import { YouTubeAPITest } from '@/components/ui/youtube-api-test';
 import Header from '@/components/layout/Header';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -400,6 +401,9 @@ const DashboardNew = () => {
         <TabsContent value="settings" className="space-y-6">
           {/* Auth Debug Component */}
           <AuthDebugTest />
+          
+          {/* YouTube API Test Component */}
+          <YouTubeAPITest />
           
           {/* YouTube Connection Debug Component */}
           <YouTubeConnectionTest />

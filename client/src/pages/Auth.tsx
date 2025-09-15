@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Navigate, Link } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, User } from 'lucide-react';
 import viewRushLogo from '@/assets/view-rush-logo.png';
+import { AuthStateDebugger } from '@/components/auth/AuthStateDebugger';
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
@@ -53,6 +54,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
+      <AuthStateDebugger />
       <div className="w-full max-w-md">
         {/* Back to Home */}
         <Link 

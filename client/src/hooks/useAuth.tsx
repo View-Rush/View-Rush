@@ -65,13 +65,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
           authKeys.forEach(key => localStorage.removeItem(key));
           sessionStorage.clear();
           
-          // Navigate to home only if we're on a protected route
-          setTimeout(() => {
-            const protectedRoutes = ['/dashboard', '/analytics', '/profile', '/settings', '/trending'];
-            if (protectedRoutes.some(route => window.location.pathname.startsWith(route))) {
-              navigate('/');
-            }
-          }, 100);
+          // Only navigate away if this is an actual SIGNED_OUT event (not just no session)
+          // and we're currently on a protected route
+          if (event === 'SIGNED_OUT') {
+            setTimeout(() => {
+              const protectedRoutes = ['/dashboard', '/analytics', '/profile', '/settings', '/trending'];
+              const currentPath = window.location.pathname;
+              
+              // Navigate to home only if we're on a protected route
+              if (protectedRoutes.some(route => currentPath.startsWith(route))) {
+                console.log('Navigating from protected route to home after sign out');
+                navigate('/', { replace: true });
+              }
+            }, 50);
+          }
           return;
         }
         
@@ -229,10 +236,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
         document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
       });
 
-      console.log('All cleanup completed. Forcing navigation...');
+      console.log('All cleanup completed. Navigation will be handled by auth state listener...');
       
-      // Force a complete page reload to ensure clean state
-      window.location.replace('/');
+      // Let the auth state listener handle navigation, but add a fallback
+      setTimeout(() => {
+        // Fallback navigation if auth state listener doesn't fire
+        const currentPath = window.location.pathname;
+        const protectedRoutes = ['/dashboard', '/analytics', '/profile', '/settings', '/trending'];
+        
+        if (protectedRoutes.some(route => currentPath.startsWith(route))) {
+          console.log('Fallback navigation: moving from protected route to home');
+          navigate('/', { replace: true });
+        }
+      }, 200); // Give auth state listener time to fire first
       
     } catch (error) {
       console.error('Critical sign out error:', error);
@@ -248,8 +264,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error('Emergency cleanup failed:', e);
       }
       
-      // Force navigation even if everything fails
-      window.location.replace('/');
+      // Emergency navigation only if auth state listener fails
+      navigate('/', { replace: true });
     }
   };
 
