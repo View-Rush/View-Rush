@@ -45,6 +45,9 @@ class AuthService {
     try {
       const { email, password, displayName, firstName, lastName, metadata = {} } = data;
       
+      console.log('Starting signup process for:', email);
+      // console.log('Supabase URL:', supabase.supabaseUrl); // Protected property
+      
       // Prepare user metadata
       const userMetadata = {
         display_name: displayName,
@@ -52,6 +55,8 @@ class AuthService {
         last_name: lastName,
         ...metadata,
       };
+
+      console.log('User metadata prepared:', userMetadata);
 
       const response = await supabase.auth.signUp({
         email,
@@ -62,10 +67,18 @@ class AuthService {
         },
       });
 
+      console.log('Supabase signup response:', response);
+
       if (response.error) {
+        console.error('Signup error details:', {
+          message: response.error.message,
+          status: response.error.status,
+          name: response.error.name,
+        });
+        
         toast({
           title: "Sign up failed",
-          description: response.error.message,
+          description: `${response.error.message} (Status: ${response.error.status || 'Unknown'})`,
           variant: "destructive",
         });
         return { user: null, error: response.error };
@@ -76,11 +89,24 @@ class AuthService {
           title: "Check your email",
           description: "We've sent you a confirmation link to complete your registration.",
         });
+      } else if (response.data.user?.email_confirmed_at) {
+        toast({
+          title: "Account created successfully!",
+          description: "Welcome to View Rush! You can now access your dashboard.",
+        });
       }
 
       return { user: response.data.user, error: null };
     } catch (error) {
       console.error('Sign up error:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      toast({
+        title: "Sign up failed",
+        description: `An unexpected error occurred: ${errorMessage}`,
+        variant: "destructive",
+      });
+      
       return { user: null, error };
     }
   }

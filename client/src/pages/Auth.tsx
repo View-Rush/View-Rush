@@ -9,10 +9,20 @@ import { Navigate, Link } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, User } from 'lucide-react';
 import viewRushLogo from '@/assets/view-rush-logo.png';
 import { AuthStateDebugger } from '@/components/auth/AuthStateDebugger';
+import { YouTubeConnectStep } from '@/components/auth/YouTubeConnectStep';
+import { SignupProgress } from '@/components/auth/SignupProgress';
+import { SupabaseConnectionTest } from '@/components/ui/supabase-connection-test';
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showYouTubeConnect, setShowYouTubeConnect] = useState(false);
+  const [signupData, setSignupData] = useState<{
+    email: string;
+    password: string;
+    displayName: string;
+  } | null>(null);
+  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 
   // Redirect if already authenticated - but only after loading is complete
   if (!loading && user) {
@@ -40,8 +50,44 @@ const Auth = () => {
     const password = formData.get('password') as string;
     const displayName = formData.get('displayName') as string;
     
-    await signUp(email, password, displayName);
+    // Store signup data and show YouTube connect step
+    setSignupData({ email, password, displayName });
+    setCompletedSteps(['account']);
+    setShowYouTubeConnect(true);
     setIsSubmitting(false);
+  };
+
+  const handleYouTubeConnectComplete = async (connected: boolean) => {
+    if (!signupData) return;
+    
+    setIsSubmitting(true);
+    try {
+      const result = await signUp(signupData.email, signupData.password, signupData.displayName);
+      
+      if (!result.error) {
+        // Account created successfully, redirect will happen via useAuth
+        console.log('Account created successfully', connected ? 'with YouTube connected' : 'without YouTube');
+        if (connected) {
+          setCompletedSteps(prev => [...prev, 'youtube']);
+        }
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+    } finally {
+      setIsSubmitting(false);
+      setShowYouTubeConnect(false);
+      setSignupData(null);
+    }
+  };
+
+  const handleYouTubeConnectSkip = () => {
+    console.log('User skipped YouTube connection');
+  };
+
+  const handleBackToAccountDetails = () => {
+    setShowYouTubeConnect(false);
+    setSignupData(null);
+    setCompletedSteps([]);
   };
 
   if (loading) {
@@ -55,6 +101,12 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
       <AuthStateDebugger />
+      
+      {/* Temporary connection test - positioned top right */}
+      <div className="fixed top-4 right-4 z-40">
+        <SupabaseConnectionTest />
+      </div>
+      
       <div className="w-full max-w-md">
         {/* Back to Home */}
         <Link 
@@ -76,127 +128,144 @@ const Auth = () => {
           <p className="text-white/80">Your YouTube Analytics Platform</p>
         </div>
 
-        <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-sm">
-          <CardHeader className="space-y-1 pb-6">
-            <CardTitle className="text-2xl text-center bg-gradient-primary bg-clip-text text-transparent">
-              Welcome
-            </CardTitle>
-            <CardDescription className="text-center text-muted-foreground">
-              Sign in to your account or create a new one
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="signin" className="space-y-4 mt-6">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signin-email"
-                        name="email"
-                        type="email"
-                        placeholder="your@email.com"
-                        className="pl-10"
-                        required
-                      />
+        {/* YouTube Connect Step */}
+        {showYouTubeConnect ? (
+          <>
+            <SignupProgress 
+              currentStep="youtube" 
+              completedSteps={completedSteps}
+            />
+            <YouTubeConnectStep
+              isVisible={showYouTubeConnect}
+              onComplete={handleYouTubeConnectComplete}
+              onSkip={handleYouTubeConnectSkip}
+              onBack={handleBackToAccountDetails}
+            />
+          </>
+        ) : (
+          /* Regular Auth Form */
+          <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-sm">
+            <CardHeader className="space-y-1 pb-6">
+              <CardTitle className="text-2xl text-center bg-gradient-primary bg-clip-text text-transparent">
+                Welcome
+              </CardTitle>
+              <CardDescription className="text-center text-muted-foreground">
+                Sign in to your account or create a new one
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent>
+              <Tabs defaultValue="signin" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="signin">Sign In</TabsTrigger>
+                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="signin" className="space-y-4 mt-6">
+                  <form onSubmit={handleSignIn} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-email">Email</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="signin-email"
+                          name="email"
+                          type="email"
+                          placeholder="your@email.com"
+                          className="pl-10"
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signin-password"
-                        name="password"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        required
-                      />
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-password">Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="signin-password"
+                          name="password"
+                          type="password"
+                          placeholder="••••••••"
+                          className="pl-10"
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    variant="hero"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? 'Signing in...' : 'Sign In'}
-                  </Button>
-                </form>
-              </TabsContent>
-              
-              <TabsContent value="signup" className="space-y-4 mt-6">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name">Display Name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signup-name"
-                        name="displayName"
-                        type="text"
-                        placeholder="Your name"
-                        className="pl-10"
-                      />
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      variant="hero"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? 'Signing in...' : 'Sign In'}
+                    </Button>
+                  </form>
+                </TabsContent>
+                
+                <TabsContent value="signup" className="space-y-4 mt-6">
+                  <form onSubmit={handleSignUp} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-name">Display Name</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="signup-name"
+                          name="displayName"
+                          type="text"
+                          placeholder="Your name"
+                          className="pl-10"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signup-email"
-                        name="email"
-                        type="email"
-                        placeholder="your@email.com"
-                        className="pl-10"
-                        required
-                      />
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="signup-email"
+                          name="email"
+                          type="email"
+                          placeholder="your@email.com"
+                          className="pl-10"
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signup-password"
-                        name="password"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        minLength={6}
-                        required
-                      />
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Password</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="signup-password"
+                          name="password"
+                          type="password"
+                          placeholder="••••••••"
+                          className="pl-10"
+                          minLength={6}
+                          required
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    variant="hero"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? 'Creating account...' : 'Create Account'}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-          
-          <CardFooter className="text-center">
-            <p className="text-sm text-muted-foreground">
-              By continuing, you agree to our Terms of Service and Privacy Policy
-            </p>
-          </CardFooter>
-        </Card>
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      variant="hero"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? 'Creating account...' : 'Create Account'}
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+            
+            <CardFooter className="text-center">
+              <p className="text-sm text-muted-foreground">
+                By continuing, you agree to our Terms of Service and Privacy Policy
+              </p>
+            </CardFooter>
+          </Card>
+        )}
       </div>
     </div>
   );
