@@ -7,13 +7,106 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
-  }
   public: {
     Tables: {
+      analytics_data: {
+        Row: {
+          connection_id: string
+          created_at: string
+          date_collected: string
+          id: string
+          metrics: Json
+          raw_data: Json | null
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          date_collected: string
+          id?: string
+          metrics?: Json
+          raw_data?: Json | null
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          date_collected?: string
+          id?: string
+          metrics?: Json
+          raw_data?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_data_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "channel_connections"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      channel_connections: {
+        Row: {
+          access_token: string
+          channel_avatar_url: string | null
+          channel_handle: string | null
+          channel_id: string
+          channel_name: string
+          created_at: string
+          error_message: string | null
+          id: string
+          is_active: boolean
+          last_sync_at: string | null
+          metadata: Json
+          platform: string
+          refresh_token: string | null
+          scope_granted: string[] | null
+          sync_status: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          channel_avatar_url?: string | null
+          channel_handle?: string | null
+          channel_id: string
+          channel_name: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          metadata?: Json
+          platform: string
+          refresh_token?: string | null
+          scope_granted?: string[] | null
+          sync_status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          channel_avatar_url?: string | null
+          channel_handle?: string | null
+          channel_id?: string
+          channel_name?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          is_active?: boolean
+          last_sync_at?: string | null
+          metadata?: Json
+          platform?: string
+          refresh_token?: string | null
+          scope_granted?: string[] | null
+          sync_status?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -46,7 +139,44 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_channel_summary: {
+        Args: {
+          user_uuid: string
+        }
+        Returns: {
+          platform: string
+          channel_count: number
+          total_subscribers: number
+          total_views: number
+          is_connected: boolean
+        }[]
+      }
+      get_latest_analytics: {
+        Args: {
+          connection_uuid: string
+        }
+        Returns: {
+          subscriber_count: number
+          view_count: number
+          video_count: number
+          last_updated: string
+        }[]
+      }
+      update_channel_analytics: {
+        Args: {
+          connection_uuid: string
+          analytics_data: Json
+        }
+        Returns: boolean
+      }
+      handle_new_user: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      update_updated_at_column: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

@@ -260,7 +260,7 @@ export const Features = () => {
                 </div>
                 
                 {/* Orbiting elements with controlled animation */}
-                <div className="absolute inset-0 group-hover/viz:animate-spin-slow transition-all duration-1000 group-hover/viz:duration-[8s]">
+                <div className="absolute inset-0 group-hover/viz:animate-spin-slow transition-all duration-1000 group-hover/viz:duration-8000">
                   <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                     <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/50 group-hover/viz:scale-110 transition-all duration-300">
                       <Sparkles className="h-3 w-3 text-white group-hover/viz:rotate-45 transition-transform duration-300" />

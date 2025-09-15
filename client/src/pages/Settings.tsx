@@ -15,22 +15,69 @@ import {
   Palette, 
   Globe, 
   Shield, 
-  Download, 
-  Upload,
   Trash2,
   Save,
   Youtube,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Unlink
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
-import { storageService, UserPreferences, ChannelConnection } from '@/services/storage';
+import { youtubeService } from '@/services/youtubeService';
+import { useChannelConnections } from '@/hooks/useChannelConnections';
+import { ChannelConnectionsList } from '@/components/ui/channel-connections-list';
+import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+type ChannelConnection = Database['public']['Tables']['channel_connections']['Row'];
+
+interface UserPreferences {
+  theme: 'light' | 'dark' | 'system';
+  notifications: {
+    email: boolean;
+    push: boolean;
+    analytics: boolean;
+    trends: boolean;
+  };
+  language: string;
+  timezone: string;
+  privacy: {
+    publicProfile: boolean;
+    showStats: boolean;
+    allowMessages: boolean;
+  };
+}
 
 const Settings = () => {
   const { user, updateProfile } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [preferences, setPreferences] = useState<UserPreferences>(storageService.getUserPreferences());
-  const [channelConnections, setChannelConnections] = useState<ChannelConnection[]>([]);
+  
+  // Use the new custom hook for channel connections
+  const {
+    connections: channelConnections,
+    loading: connectionsLoading,
+    connecting,
+    connectChannel,
+    disconnectChannel,
+    refreshConnection
+  } = useChannelConnections();
+  
+  const [preferences, setPreferences] = useState<UserPreferences>({
+    theme: 'system',
+    notifications: {
+      email: true,
+      push: true,
+      analytics: true,
+      trends: false,
+    },
+    language: 'en',
+    timezone: 'UTC',
+    privacy: {
+      publicProfile: false,
+      showStats: true,
+      allowMessages: true,
+    },
+  });
   const [profileData, setProfileData] = useState({
     displayName: user?.user_metadata?.display_name || '',
     firstName: user?.user_metadata?.first_name || '',
@@ -38,12 +85,22 @@ const Settings = () => {
   });
 
   useEffect(() => {
-    loadChannelConnections();
+    loadUserPreferences();
   }, []);
 
-  const loadChannelConnections = () => {
-    const connections = storageService.getChannelConnections();
-    setChannelConnections(connections);
+  const loadUserPreferences = async () => {
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) return;
+
+      // Try to load preferences from user metadata or database
+      const savedPreferences = currentUser.user_metadata?.preferences;
+      if (savedPreferences) {
+        setPreferences({ ...preferences, ...savedPreferences });
+      }
+    } catch (error) {
+      console.error('Error loading preferences:', error);
+    }
   };
 
   const handleProfileSave = async () => {
@@ -55,20 +112,14 @@ const Settings = () => {
         last_name: profileData.lastName,
       });
 
-      if (user) {
-        await storageService.updateUserProfile({
-          user_id: user.id,
-          display_name: profileData.displayName,
-        });
-      }
-
       toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully.",
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
       });
     } catch (error) {
+      console.error('Error updating profile:', error);
       toast({
-        title: "Update failed",
+        title: "Update Failed",
         description: "Failed to update profile. Please try again.",
         variant: "destructive",
       });
@@ -77,13 +128,7 @@ const Settings = () => {
     }
   };
 
-  const handlePreferenceChange = (key: keyof UserPreferences, value: any) => {
-    const updated = { ...preferences, [key]: value };
-    setPreferences(updated);
-    storageService.updateUserPreferences(updated);
-  };
-
-  const handleNotificationChange = (key: string, value: boolean) => {
+  const handleNotificationChange = async (key: keyof UserPreferences['notifications'], value: boolean) => {
     const updated = {
       ...preferences,
       notifications: {
@@ -92,112 +137,130 @@ const Settings = () => {
       },
     };
     setPreferences(updated);
-    storageService.updateUserPreferences(updated);
+    await savePreferences(updated);
   };
 
-  const handleAnalyticsSettingChange = (key: string, value: any) => {
+  const handleThemeChange = async (theme: 'light' | 'dark' | 'system') => {
+    const updated = { ...preferences, theme };
+    setPreferences(updated);
+    await savePreferences(updated);
+  };
+
+  const handlePrivacyChange = async (key: keyof UserPreferences['privacy'], value: boolean) => {
     const updated = {
       ...preferences,
-      analytics_settings: {
-        ...preferences.analytics_settings,
+      privacy: {
+        ...preferences.privacy,
         [key]: value,
       },
     };
     setPreferences(updated);
-    storageService.updateUserPreferences(updated);
+    await savePreferences(updated);
   };
 
-  const handleExportData = () => {
+  const savePreferences = async (newPreferences: UserPreferences) => {
     try {
-      const data = storageService.exportUserData();
-      const blob = new Blob([data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `view-rush-data-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast({
-        title: "Data exported",
-        description: "Your data has been exported successfully.",
+      const { error } = await supabase.auth.updateUser({
+        data: { preferences: newPreferences }
       });
+
+      if (error) throw error;
     } catch (error) {
+      console.error('Error saving preferences:', error);
       toast({
-        title: "Export failed",
-        description: "Failed to export data. Please try again.",
+        title: "Save Failed",
+        description: "Failed to save preferences.",
         variant: "destructive",
       });
     }
   };
 
-  const handleImportData = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = e.target?.result as string;
-        storageService.importUserData(data);
-        setPreferences(storageService.getUserPreferences());
-        loadChannelConnections();
-      } catch (error) {
-        toast({
-          title: "Import failed",
-          description: "Failed to import data. Please check the file format.",
-          variant: "destructive",
-        });
-      }
-    };
-    reader.readAsText(file);
+  const handleDisconnectChannel = async (connectionId: string) => {
+    await disconnectChannel(connectionId);
   };
 
-  const handleClearAllData = () => {
-    if (confirm('Are you sure you want to clear all local data? This cannot be undone.')) {
-      storageService.clearAllLocalData();
-      setPreferences(storageService.getUserPreferences());
-      setChannelConnections([]);
+  const handleDeleteAccount = async () => {
+    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      return;
     }
-  };
 
-  const disconnectChannel = (connectionId: string) => {
-    storageService.removeChannelConnection(connectionId);
-    loadChannelConnections();
+    try {
+      // First disconnect all channels
+      for (const connection of channelConnections) {
+        await youtubeService.disconnectAccount(connection.id);
+      }
+
+      // Then delete user account
+      const { error } = await supabase.auth.admin.deleteUser(user!.id);
+      if (error) throw error;
+
+      toast({
+        title: "Account Deleted",
+        description: "Your account has been deleted successfully.",
+      });
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast({
+        title: "Deletion Failed",
+        description: "Failed to delete account. Please contact support.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-2">
-          <SettingsIcon className="h-6 w-6" />
+      <div className="container mx-auto p-6 max-w-4xl">
+        <div className="flex items-center gap-2 mb-6">
+          <SettingsIcon className="h-8 w-8" />
           <h1 className="text-3xl font-bold">Settings</h1>
         </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="preferences">Preferences</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="channels">Channels</TabsTrigger>
-          <TabsTrigger value="data">Data</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="profile" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="connections">Connections</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="appearance">Appearance</TabsTrigger>
+            <TabsTrigger value="privacy">Privacy</TabsTrigger>
+          </TabsList>
 
-        {/* Profile Tab */}
-        <TabsContent value="profile">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Profile Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
+          <TabsContent value="profile">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Profile Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      value={profileData.firstName}
+                      onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      value={profileData.lastName}
+                      onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="displayName">Display Name</Label>
+                  <Input
+                    id="displayName"
+                    value={profileData.displayName}
+                    onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -206,67 +269,88 @@ const Settings = () => {
                     disabled
                     className="bg-muted"
                   />
+                  <p className="text-sm text-muted-foreground">
+                    Email cannot be changed. Please contact support if needed.
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="displayName">Display Name</Label>
-                  <Input
-                    id="displayName"
-                    value={profileData.displayName}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, displayName: e.target.value }))}
-                    placeholder="Your display name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    value={profileData.firstName}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
-                    placeholder="First name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    value={profileData.lastName}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
-                    placeholder="Last name"
-                  />
-                </div>
-              </div>
-              <Separator />
-              <div className="flex justify-end">
                 <Button onClick={handleProfileSave} disabled={loading}>
                   <Save className="h-4 w-4 mr-2" />
-                  {loading ? 'Saving...' : 'Save Profile'}
+                  {loading ? 'Saving...' : 'Save Changes'}
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* Preferences Tab */}
-        <TabsContent value="preferences">
-          <div className="space-y-6">
+          <TabsContent value="connections">
+            <ChannelConnectionsList
+              connections={channelConnections}
+              onConnect={connectChannel}
+              onDisconnect={handleDisconnectChannel}
+              onRefresh={refreshConnection}
+              loading={connectionsLoading || connecting}
+              title="Connected Accounts"
+              showAddButton={false}
+            />
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  Notification Preferences
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Email Notifications</Label>
+                    <p className="text-sm text-muted-foreground">Receive notifications via email</p>
+                  </div>
+                  <Switch
+                    checked={preferences.notifications.email}
+                    onCheckedChange={(checked) => handleNotificationChange('email', checked)}
+                  />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Analytics Updates</Label>
+                    <p className="text-sm text-muted-foreground">Get notified about analytics changes</p>
+                  </div>
+                  <Switch
+                    checked={preferences.notifications.analytics}
+                    onCheckedChange={(checked) => handleNotificationChange('analytics', checked)}
+                  />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Trending Alerts</Label>
+                    <p className="text-sm text-muted-foreground">Get notified about trending opportunities</p>
+                  </div>
+                  <Switch
+                    checked={preferences.notifications.trends}
+                    onCheckedChange={(checked) => handleNotificationChange('trends', checked)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="appearance">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Palette className="h-5 w-5" />
-                  Appearance
+                  Appearance Settings
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Theme</Label>
-                    <p className="text-sm text-muted-foreground">Choose your preferred theme</p>
-                  </div>
-                  <Select 
-                    value={preferences.theme} 
-                    onValueChange={(value: 'light' | 'dark' | 'system') => handlePreferenceChange('theme', value)}
-                  >
-                    <SelectTrigger className="w-32">
+              <CardContent className="space-y-6">
+                <div>
+                  <Label>Theme</Label>
+                  <Select value={preferences.theme} onValueChange={handleThemeChange}>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -276,257 +360,78 @@ const Settings = () => {
                     </SelectContent>
                   </Select>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 w-5" />
-                  Localization
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Language</Label>
-                    <p className="text-sm text-muted-foreground">Select your preferred language</p>
-                  </div>
-                  <Select 
-                    value={preferences.language} 
-                    onValueChange={(value) => handlePreferenceChange('language', value)}
-                  >
-                    <SelectTrigger className="w-32">
+                <div>
+                  <Label>Language</Label>
+                  <Select value={preferences.language} onValueChange={(value) => setPreferences({ ...preferences, language: value })}>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="es">Español</SelectItem>
-                      <SelectItem value="fr">Français</SelectItem>
-                      <SelectItem value="de">Deutsch</SelectItem>
+                      <SelectItem value="es">Spanish</SelectItem>
+                      <SelectItem value="fr">French</SelectItem>
+                      <SelectItem value="de">German</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Timezone</Label>
-                    <p className="text-sm text-muted-foreground">Current: {preferences.timezone}</p>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                      handlePreferenceChange('timezone', timezone);
-                    }}
-                  >
-                    Auto-detect
-                  </Button>
-                </div>
               </CardContent>
             </Card>
+          </TabsContent>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Analytics Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Default Time Range</Label>
-                    <p className="text-sm text-muted-foreground">Default period for analytics data</p>
-                  </div>
-                  <Select 
-                    value={preferences.analytics_settings.default_time_range} 
-                    onValueChange={(value) => handleAnalyticsSettingChange('default_time_range', value)}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="7d">7 days</SelectItem>
-                      <SelectItem value="30d">30 days</SelectItem>
-                      <SelectItem value="90d">90 days</SelectItem>
-                      <SelectItem value="1y">1 year</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Auto-refresh</Label>
-                    <p className="text-sm text-muted-foreground">Automatically refresh dashboard data</p>
-                  </div>
-                  <Switch
-                    checked={preferences.analytics_settings.auto_refresh}
-                    onCheckedChange={(value) => handleAnalyticsSettingChange('auto_refresh', value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* Notifications Tab */}
-        <TabsContent value="notifications">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
-                Notification Preferences
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Email Notifications</Label>
-                  <p className="text-sm text-muted-foreground">Receive updates via email</p>
-                </div>
-                <Switch
-                  checked={preferences.notifications.email}
-                  onCheckedChange={(value) => handleNotificationChange('email', value)}
-                />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Push Notifications</Label>
-                  <p className="text-sm text-muted-foreground">Browser push notifications</p>
-                </div>
-                <Switch
-                  checked={preferences.notifications.push}
-                  onCheckedChange={(value) => handleNotificationChange('push', value)}
-                />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Analytics Updates</Label>
-                  <p className="text-sm text-muted-foreground">Notifications about analytics changes</p>
-                </div>
-                <Switch
-                  checked={preferences.notifications.analytics}
-                  onCheckedChange={(value) => handleNotificationChange('analytics', value)}
-                />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Recommendations</Label>
-                  <p className="text-sm text-muted-foreground">AI-powered content recommendations</p>
-                </div>
-                <Switch
-                  checked={preferences.notifications.recommendations}
-                  onCheckedChange={(value) => handleNotificationChange('recommendations', value)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Channels Tab */}
-        <TabsContent value="channels">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Youtube className="h-5 w-5" />
-                Connected Channels
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {channelConnections.length > 0 ? (
-                <div className="space-y-4">
-                  {channelConnections.map((connection) => (
-                    <div key={connection.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Youtube className="h-6 w-6 text-red-600" />
-                        <div>
-                          <h4 className="font-medium">{connection.channel_name}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {connection.platform} • Connected {new Date(connection.connected_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Badge variant={connection.is_active ? "default" : "secondary"}>
-                          {connection.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => disconnectChannel(connection.id)}
-                      >
-                        Disconnect
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Youtube className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground mb-4">No channels connected</p>
-                  <Button>Connect YouTube Channel</Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Data Tab */}
-        <TabsContent value="data">
-          <div className="space-y-6">
+          <TabsContent value="privacy">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5" />
-                  Data Management
+                  Privacy & Security
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Export Data</Label>
-                    <p className="text-sm text-muted-foreground">Download all your data as JSON</p>
+                    <Label>Public Profile</Label>
+                    <p className="text-sm text-muted-foreground">Make your profile visible to others</p>
                   </div>
-                  <Button variant="outline" onClick={handleExportData}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
+                  <Switch
+                    checked={preferences.privacy.publicProfile}
+                    onCheckedChange={(checked) => handlePrivacyChange('publicProfile', checked)}
+                  />
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Import Data</Label>
-                    <p className="text-sm text-muted-foreground">Import previously exported data</p>
+                    <Label>Show Statistics</Label>
+                    <p className="text-sm text-muted-foreground">Display your channel statistics publicly</p>
                   </div>
-                  <div>
-                    <Input
-                      type="file"
-                      accept=".json"
-                      onChange={handleImportData}
-                      className="hidden"
-                      id="import-data"
-                    />
-                    <Button variant="outline" onClick={() => document.getElementById('import-data')?.click()}>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Import
-                    </Button>
-                  </div>
+                  <Switch
+                    checked={preferences.privacy.showStats}
+                    onCheckedChange={(checked) => handlePrivacyChange('showStats', checked)}
+                  />
                 </div>
                 <Separator />
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Clear All Data</Label>
-                    <p className="text-sm text-muted-foreground">Remove all local data and reset settings</p>
-                  </div>
-                  <Button variant="destructive" onClick={handleClearAllData}>
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Clear All
-                  </Button>
+                <div className="pt-6">
+                  <h3 className="text-lg font-semibold text-red-600 mb-4">Danger Zone</h3>
+                  <Card className="border-red-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium">Delete Account</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Permanently delete your account and all associated data
+                          </p>
+                        </div>
+                        <Button variant="destructive" onClick={handleDeleteAccount}>
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Account
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

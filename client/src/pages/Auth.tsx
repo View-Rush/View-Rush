@@ -13,8 +13,8 @@ const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Redirect if already authenticated
-  if (user && !loading) {
+  // Redirect if already authenticated - but only after loading is complete
+  if (!loading && user) {
     return <Navigate to="/dashboard" replace />;
   }
 

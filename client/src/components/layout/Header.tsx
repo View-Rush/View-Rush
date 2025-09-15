@@ -63,22 +63,28 @@ const Header = () => {
 
   const handleSignOut = async () => {
     try {
+      console.log('Header handleSignOut clicked');
+      console.log('Current user:', user?.email);
+      console.log('SignOut function available:', typeof signOut);
+      
+      // Show immediate feedback
+      toast({
+        title: "Signing out...",
+        description: "Please wait while we sign you out.",
+        duration: 2000,
+      });
+      
       await signOut();
       
-      // Quick success message
-      toast({
-        title: "Signed out",
-        description: "Successfully signed out.",
-        duration: 2000, // Short duration
-      });
+      console.log('Header: SignOut completed');
+      
     } catch (error) {
-      console.error('Sign out error:', error);
-      toast({
-        title: "Sign out failed",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive",
-        duration: 3000,
-      });
+      console.error('Header: Sign out error:', error);
+      
+      // Force sign out even if there's an error
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/';
     }
   };
 
