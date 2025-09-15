@@ -6,7 +6,7 @@ import transformers
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
 from typing import Optional, Dict, Any
-
+from wikipedia import page, DisambiguationError, PageError
 # Lazy-loaded global model holders
 _models = {
     "ner": None,
@@ -125,7 +125,7 @@ def extract_entities_and_link(processed_video: Dict[str, Any]) -> Dict[str, Any]
     Run NER on the combined title+description, then attempt simple Wikipedia linking.
     Returns linked_entities list and discovered entity strings.
     """
-    from wikipedia import page, DisambiguationError, PageError
+    
     text = (processed_video.get("clean_title", "") + " " + processed_video.get("clean_description", "")).strip()
     ner = _models["ner"]
     ner_results = ner(text) if text else []
