@@ -12,6 +12,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Trending from "./pages/Trending";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import YouTubeCallback from "./pages/YouTubeCallback";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +28,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route 
               path="/auth/youtube/callback" 
               element={
@@ -75,16 +77,6 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
-            {/* Legacy dashboard route for backward compatibility */}
-            <Route 
-              path="/dashboard-old" 
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
