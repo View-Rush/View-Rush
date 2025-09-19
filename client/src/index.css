@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* View Rush Design System - YouTube Analytics Platform */
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -15,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
 
-    /* YouTube-inspired primary colors */
+    /* YouTube inspired primary colors */
     --primary: 0 100% 50%;
     --primary-foreground: 0 0% 98%;
     --primary-glow: 0 100% 65%;
