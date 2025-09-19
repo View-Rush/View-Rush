@@ -64,7 +64,7 @@ const Header = () => {
       toast({
         title: "Signing out...",
         description: "Please wait while we sign you out.",
-        duration: 2000,
+        duration: 1500,
       });
       
       await signOut();
