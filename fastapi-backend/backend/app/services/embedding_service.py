@@ -186,9 +186,6 @@ def score_topics(processed_video: Dict[str, Any]) -> Dict[str, Any]:
     scores = [float(s) for s in res.get("scores", [])[:top_k]]
     return {"topics": labels, "scores": scores}
 
-# -------------------------
-# Embedding + weighting
-# -------------------------
 def video_to_weighted_embedding(video_struct: Dict[str, Any], global_max_views: float) -> Optional[np.ndarray]:
     """
     For one video structure (with linked_entities, topics, view_count), create a weighted embedding vector.

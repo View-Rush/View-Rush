@@ -35,7 +35,7 @@ class EarlyFusionModel(nn.Module):
 # FastAPI setup
 # -------------------------
 # app = FastAPI(title="Fusion Model API", description="Predicts heatmap from embeddings")
-router = APIRouter(prefix="/fusion-model", tags=["Fusion Model"])
+router = APIRouter(prefix="/mlp-fusion-model", tags=["Fusion Model"])
 
 # Example dims (adjust based on your real embeddings)
 metadata_dim = 384
@@ -70,3 +70,5 @@ def predict_heatmap(payload: EmbeddingRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
