@@ -2,6 +2,15 @@
 from pydantic import BaseModel
 from typing import List, Dict, Any
 
+class HeatmapResponse(BaseModel):
+    slot_probabilities: dict[int, float]  # slot_id -> probability
+
+
+class EmbeddingRequest(BaseModel):
+    metadata_embedding: list[float]
+    content_embedding: list[float]
+    user_embedding: list[float]
+
 class VideoIn(BaseModel):
     title: str
     description: str

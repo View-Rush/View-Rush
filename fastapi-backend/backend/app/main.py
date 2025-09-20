@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import user_profiling, test_youtube
+from app.routers import user_profiling, test_youtube, heatmap
 from app.routers import profile_embedding
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,3 +17,4 @@ app.add_middleware(
 app.include_router(test_youtube.router)
 app.include_router(user_profiling.router)
 app.include_router(profile_embedding.router)
+app.include_router(heatmap.router)
