@@ -8,10 +8,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Navigate, Link } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, User } from 'lucide-react';
 import viewRushLogo from '@/assets/view-rush-logo.png';
-import { AuthStateDebugger } from '@/components/auth/AuthStateDebugger';
 import { YouTubeConnectStep } from '@/components/auth/YouTubeConnectStep';
 import { SignupProgress } from '@/components/auth/SignupProgress';
-import { SupabaseConnectionTest } from '@/components/ui/supabase-connection-test';
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
@@ -100,13 +98,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-4">
-      <AuthStateDebugger />
-      
-      {/* Temporary connection test - positioned top right */}
-      <div className="fixed top-4 right-4 z-40">
-        <SupabaseConnectionTest />
-      </div>
-      
+
       <div className="w-full max-w-md">
         {/* Back to Home */}
         <Link 
@@ -117,7 +109,7 @@ const Auth = () => {
           <span>Back to Home</span>
         </Link>
 
-        {/* Logo and Brand */}
+        {/* Logo */}
         <div className="text-center mb-8">
           <img 
             src={viewRushLogo} 
