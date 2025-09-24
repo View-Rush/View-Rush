@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Youtube, CheckCircle, AlertTriangle, Info } from 'lucide-react';
-import { youtubeService, YouTubeConnectionStatus } from '@/services/youtubeService';
+import { Youtube, Info } from 'lucide-react';
+import { youtubeService} from '@/services/youtubeService';
 import { toast } from '@/hooks/use-toast';
 
 interface YouTubeConnectStepProps {
@@ -16,8 +15,6 @@ interface YouTubeConnectStepProps {
 
 export function YouTubeConnectStep({ onComplete, onSkip, onBack, isVisible }: YouTubeConnectStepProps) {
   const [isConnecting, setIsConnecting] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<YouTubeConnectionStatus | null>(null);
-  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
 
   if (!isVisible) return null;
 
@@ -25,7 +22,7 @@ export function YouTubeConnectStep({ onComplete, onSkip, onBack, isVisible }: Yo
     try {
       setIsConnecting(true);
       await youtubeService.connectAccount();
-      // The page will redirect to YouTube OAuth, so we don't need to handle the response here
+      // The page will redirect to YouTube OAuth, so no need to handle the response here
     } catch (error) {
       console.error('Failed to start YouTube connection:', error);
       toast({
@@ -34,38 +31,6 @@ export function YouTubeConnectStep({ onComplete, onSkip, onBack, isVisible }: Yo
         variant: "destructive",
       });
       setIsConnecting(false);
-    }
-  };
-
-  const checkStatus = async () => {
-    try {
-      setIsCheckingStatus(true);
-      const status = await youtubeService.getConnectionStatus();
-      setConnectionStatus(status);
-      
-      if (status.isConnected) {
-        toast({
-          title: "YouTube Connected!",
-          description: `Successfully connected to ${status.connection?.channel_name}`,
-          variant: "default",
-        });
-        onComplete(true);
-      } else {
-        toast({
-          title: "Not Connected",
-          description: "No YouTube channel is currently connected.",
-          variant: "default",
-        });
-      }
-    } catch (error) {
-      console.error('Failed to check YouTube connection status:', error);
-      toast({
-        title: "Check Failed",
-        description: "Failed to check connection status. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCheckingStatus(false);
     }
   };
 
@@ -96,22 +61,6 @@ export function YouTubeConnectStep({ onComplete, onSkip, onBack, isVisible }: Yo
           </AlertDescription>
         </Alert>
 
-        {connectionStatus && (
-          <Alert className={connectionStatus.isConnected ? "border-green-200 bg-green-50" : "border-yellow-200 bg-yellow-50"}>
-            {connectionStatus.isConnected ? (
-              <CheckCircle className="h-4 w-4 text-green-600" />
-            ) : (
-              <AlertTriangle className="h-4 w-4 text-yellow-600" />
-            )}
-            <AlertDescription className={connectionStatus.isConnected ? "text-green-800" : "text-yellow-800"}>
-              {connectionStatus.isConnected 
-                ? `Connected to ${connectionStatus.connection?.channel_name}`
-                : "No YouTube channel connected"
-              }
-            </AlertDescription>
-          </Alert>
-        )}
-
         <div className="space-y-4">
           <div className="text-sm text-muted-foreground">
             <h4 className="font-medium mb-2">What you'll get:</h4>
@@ -119,7 +68,6 @@ export function YouTubeConnectStep({ onComplete, onSkip, onBack, isVisible }: Yo
               <li>Real-time analytics for your YouTube channel</li>
               <li>Subscriber growth tracking</li>
               <li>Video performance insights</li>
-              <li>Revenue and engagement metrics</li>
             </ul>
           </div>
 
@@ -139,22 +87,6 @@ export function YouTubeConnectStep({ onComplete, onSkip, onBack, isVisible }: Yo
                   <Youtube className="h-4 w-4" />
                   <span>Connect YouTube Channel</span>
                 </div>
-              )}
-            </Button>
-
-            <Button 
-              onClick={checkStatus}
-              disabled={isCheckingStatus}
-              variant="outline"
-              className="w-full"
-            >
-              {isCheckingStatus ? (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-                  <span>Checking...</span>
-                </div>
-              ) : (
-                "Check Connection Status"
               )}
             </Button>
 

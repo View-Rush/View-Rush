@@ -107,10 +107,12 @@ const DashboardNew = () => {
       if (cached) {
         setAnalyticsData(cached);
       } else {
-        // Fetch from API - commenting out for now due to type mismatch
-        // const data = await youtubeService.getChannelAnalytics('default');
-        // setAnalyticsData(data as unknown as AnalyticsData);
-        // storageService.setCachedAnalytics(cacheKey, data); // Cache the data
+        // Fetch from API using the new dashboard-specific method
+        const data = await youtubeService.getDashboardAnalytics();
+        if (data) {
+          setAnalyticsData(data as AnalyticsData);
+          storageService.setCachedAnalytics(cacheKey, data); // Cache the data
+        }
       }
 
       // Get predictions - removing for now since apiService doesn't exist

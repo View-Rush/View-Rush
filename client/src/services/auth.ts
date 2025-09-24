@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { User, Session, AuthResponse } from '@supabase/supabase-js';
+import { User, Session} from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
 
 export interface UserProfile {
