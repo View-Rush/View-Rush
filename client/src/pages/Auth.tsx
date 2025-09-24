@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Mail, Lock, User } from "lucide-react";
 import viewRushLogo from "@/assets/view-rush-logo.png";
 import { YouTubeConnectStep } from "@/components/auth/YouTubeConnectStep";
@@ -20,6 +20,7 @@ import { SignupProgress } from "@/components/auth/SignupProgress";
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
+  const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showYouTubeConnect, setShowYouTubeConnect] = useState(false);
   const [signupData, setSignupData] = useState<{
@@ -31,10 +32,46 @@ const Auth = () => {
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
   const clearSignupDataTimeout = useRef<number | null>(null);
 
-  // Redirect if already authenticated - but only after loading is complete
-  if (!loading && user) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  // Handle navigation when user is authenticated
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  // Load saved signup data on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("signupData");
+    if (saved) {
+      setSignupData(JSON.parse(saved));
+      // if there's saved signup data, show the signup tab when returning
+      setActiveTab("signup");
+    }
+  }, []);
+
+  // Handle signup data cleanup timer
+  useEffect(() => {
+    // clear any existing timer
+    if (clearSignupDataTimeout.current) {
+      clearTimeout(clearSignupDataTimeout.current);
+      clearSignupDataTimeout.current = null;
+    }
+
+    if (signupData) {
+      clearSignupDataTimeout.current = window.setTimeout(() => {
+        setSignupData(null);
+        localStorage.removeItem("signupData");
+        clearSignupDataTimeout.current = null;
+      }, 5000); // 5000ms = 5s
+    }
+
+    return () => {
+      if (clearSignupDataTimeout.current) {
+        clearTimeout(clearSignupDataTimeout.current);
+        clearSignupDataTimeout.current = null;
+      }
+    };
+  }, [signupData]);
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -70,38 +107,6 @@ const Auth = () => {
     setShowYouTubeConnect(true);
     setIsSubmitting(false);
   };
-
-  useEffect(() => {
-    const saved = localStorage.getItem("signupData");
-    if (saved) {
-      setSignupData(JSON.parse(saved));
-      // if there's saved signup data, show the signup tab when returning
-      setActiveTab("signup");
-    }
-  }, []);
-
-  useEffect(() => {
-    // clear any existing timer
-     if (clearSignupDataTimeout.current) {
-      clearTimeout(clearSignupDataTimeout.current);
-      clearSignupDataTimeout.current = null;
-    }
-
-    if (signupData) {
-      clearSignupDataTimeout.current = window.setTimeout(() => {
-        setSignupData(null);
-        localStorage.removeItem("signupData");
-        clearSignupDataTimeout.current = null;
-      }, 5000); // 5000ms = 5s
-    }
-
-    return () => {
-      if (clearSignupDataTimeout.current) {
-        clearTimeout(clearSignupDataTimeout.current);
-        clearSignupDataTimeout.current = null;
-      }
-    };
-  }, [signupData]);
 
   const handleYouTubeConnectComplete = async (connected: boolean) => {
     if (!signupData) return;
