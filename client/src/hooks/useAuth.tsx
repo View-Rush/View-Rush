@@ -1,8 +1,9 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
-import { authService, SignUpData, SignInData } from '@/services/auth';
+import { authService, SignUpData} from '@/services/auth';
 import { storageService } from '@/services/storageService';
+import { authHelper } from '@/services/authHelper';
 
 interface AuthContextType {
   user: User | null;
@@ -11,7 +12,6 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  signInWithOAuth: (provider: 'google' | 'github' | 'discord') => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
   updateProfile: (updates: any) => Promise<{ error: any }>;
@@ -19,7 +19,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Use function declaration instead of arrow function for better Fast Refresh compatibility
+// Function declaration instead of arrow function for better Fast Refresh compatibility
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -55,6 +55,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(null);
           setLoading(false);
           
+          // Clear authHelper cache
+          authHelper.clearCache();
+          
           // Clear auth-related storage when signed out
           const authKeys = Object.keys(localStorage).filter(key => 
             key.startsWith('supabase.auth.') || 
@@ -63,7 +66,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
             key.includes('session')
           );
           authKeys.forEach(key => localStorage.removeItem(key));
-          sessionStorage.clear();
+          
+          // Clear session storage selectively to preserve OAuth states
+          const sessionKeys = Object.keys(sessionStorage).filter(key =>
+            key.startsWith('supabase.auth.') ||
+            (key.includes('auth') && !key.includes('oauth')) ||
+            (key.includes('token') && !key.includes('oauth')) ||
+            (key.includes('session') && !key.includes('oauth'))
+          );
+          sessionKeys.forEach(key => sessionStorage.removeItem(key));
           
           // Only navigate away if this is an actual SIGNED_OUT event (not just no session)
           // and we're currently on a protected route
@@ -87,6 +98,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setSession(session);
           setUser(session.user);
           setLoading(false);
+          
+          // Update authHelper with the authenticated user
+          authHelper.setUserFromContext(session.user);
           
           // Initialize user profile in Supabase
           try {
@@ -190,8 +204,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
           console.log('Removed localStorage key:', key);
         });
         
-        // Clear all sessionStorage as it's typically temporary
-        sessionStorage.clear();
+        // Clear session storage selectively to preserve OAuth states
+        const sessionKeys = Object.keys(sessionStorage).filter(key =>
+          key.startsWith('supabase.auth.') ||
+          (key.includes('auth') && !key.includes('oauth')) ||
+          (key.includes('token') && !key.includes('oauth')) ||
+          (key.includes('session') && !key.includes('oauth'))
+        );
+        sessionKeys.forEach(key => sessionStorage.removeItem(key));
+        
+        // Clear YouTube OAuth states on sign-out since user is leaving
+        const youtubeOAuthKeys = ['youtube_oauth_state', 'youtube_oauth_user_id'];
+        youtubeOAuthKeys.forEach(key => {
+          if (sessionStorage.getItem(key)) {
+            sessionStorage.removeItem(key);
+            console.log('Cleared YouTube OAuth key on sign-out:', key);
+          }
+        });
         
         console.log('Auth storage cleared. Remaining localStorage keys:', Object.keys(localStorage));
       } catch (storageError) {
@@ -253,10 +282,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       console.error('Critical sign out error:', error);
       
-      // Emergency cleanup - force clear everything
+      // Emergency cleanup - force clear everything except OAuth states
       try {
         localStorage.clear();
+        // Preserve OAuth states in session storage during emergency cleanup
+        const oauthStates: { [key: string]: string } = {};
+        Object.keys(sessionStorage).forEach(key => {
+          if (key.includes('oauth')) {
+            oauthStates[key] = sessionStorage.getItem(key) || '';
+          }
+        });
         sessionStorage.clear();
+        // Restore OAuth states
+        Object.entries(oauthStates).forEach(([key, value]) => {
+          sessionStorage.setItem(key, value);
+        });
         setUser(null);
         setSession(null);
         setLoading(false);
@@ -267,10 +307,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Emergency navigation only if auth state listener fails
       navigate('/', { replace: true });
     }
-  };
-
-  const signInWithOAuth = async (provider: 'google' | 'github' | 'discord') => {
-    return await authService.signInWithOAuth(provider);
   };
 
   const resetPassword = async (email: string) => {
@@ -293,7 +329,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signIn,
     signUp,
     signOut,
-    signInWithOAuth,
     resetPassword,
     updatePassword,
     updateProfile,
@@ -302,5 +337,4 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// Add display name for better debugging and Fast Refresh compatibility
 AuthProvider.displayName = 'AuthProvider';

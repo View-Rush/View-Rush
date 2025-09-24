@@ -1,4 +1,3 @@
-// Enhanced authentication service with full client-side auth management
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session, AuthResponse } from '@supabase/supabase-js';
 import { toast } from '@/hooks/use-toast';
@@ -46,8 +45,7 @@ class AuthService {
       const { email, password, displayName, firstName, lastName, metadata = {} } = data;
       
       console.log('Starting signup process for:', email);
-      // console.log('Supabase URL:', supabase.supabaseUrl); // Protected property
-      
+
       // Prepare user metadata
       const userMetadata = {
         display_name: displayName,
@@ -151,7 +149,7 @@ class AuthService {
     try {
       console.log('AuthService: Starting sign out...');
       
-      // First try to sign out from Supabase with local scope
+      // Sign out from Supabase with local scope
       console.log('AuthService: Attempting local sign out...');
       let { error } = await supabase.auth.signOut({ scope: 'local' });
       
@@ -186,29 +184,29 @@ class AuthService {
   }
 
   // OAuth sign in (Google, GitHub, etc.)
-  async signInWithOAuth(provider: 'google' | 'github' | 'discord'): Promise<{ error: any }> {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
+  // async signInWithOAuth(provider: 'google' | 'github' | 'discord'): Promise<{ error: any }> {
+  //   try {
+  //     const { error } = await supabase.auth.signInWithOAuth({
+  //       provider,
+  //       options: {
+  //         redirectTo: `${window.location.origin}/auth/callback`,
+  //       },
+  //     });
 
-      if (error) {
-        toast({
-          title: "OAuth sign in failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
+  //     if (error) {
+  //       toast({
+  //         title: "OAuth sign in failed",
+  //         description: error.message,
+  //         variant: "destructive",
+  //       });
+  //     }
 
-      return { error };
-    } catch (error) {
-      console.error('OAuth sign in error:', error);
-      return { error };
-    }
-  }
+  //     return { error };
+  //   } catch (error) {
+  //     console.error('OAuth sign in error:', error);
+  //     return { error };
+  //   }
+  // }
 
   // Reset password
   async resetPassword(data: ResetPasswordData): Promise<{ error: any }> {
