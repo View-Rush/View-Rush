@@ -161,14 +161,14 @@ export class YouTubeDatabaseService {
 
       logger.debug('YouTubeDB', 'Connection data prepared', connectionData);
 
-      // Insert connection
-    //   const { data: insertedConnection, error: insertError } = await supabase
-    //     .from('channel_connections')
-    //     .insert(connectionData)
-    //     .select('*')
-    //     .single();
+    //   Insert connection
+      const { data: insertedConnection, error: insertError } = await supabase
+        .from('channel_connections')
+        .insert(connectionData)
+        .select('*')
+        .single();
 
-        const { data: insertedConnection, error: insertError } = await testChannelInsertion(connectionData);
+        // const { data: insertedConnection, error: insertError } = await testChannelInsertion(connectionData);
 
       if (insertError) {
         throw errorHandler.createDatabaseError('Failed to insert connection', insertError);

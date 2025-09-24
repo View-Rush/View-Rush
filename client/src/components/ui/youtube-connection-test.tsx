@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { youtubeService } from '@/services/youtubeService';
+import { youtubeService } from '@/services/youtube';
 import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
 
 export function YouTubeConnectionTest() {

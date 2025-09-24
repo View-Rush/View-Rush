@@ -23,6 +23,7 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { youtubeService } from '@/services/youtube';
 import { storageService } from '@/services/storageService';
+import { connectionStateManager } from '@/services/connectionStateManager';
 import { useChannelConnections } from '@/hooks/useChannelConnections';
 import { ChannelConnectionsList } from '@/components/ui/channel-connections-list';
 import { ConnectChannelButton } from '@/components/ui/connect-channel-button';
@@ -99,6 +100,14 @@ const DashboardNew = () => {
 
   const loadDashboardData = async () => {
     setLoading(true);
+    
+    // Check if connection process is in progress and block if so
+    if (connectionStateManager.isConnecting()) {
+      console.log('🔒 loadDashboardData() blocked - connection in progress');
+      setLoading(false);
+      return;
+    }
+    
     try {
       // Check cache first
       const cacheKey = `analytics_${user?.id}`;
@@ -107,11 +116,35 @@ const DashboardNew = () => {
       if (cached) {
         setAnalyticsData(cached);
       } else {
-        // Fetch from API using the new dashboard-specific method
-        const data = await youtubeService.getDashboardAnalytics();
-        if (data) {
-          setAnalyticsData(data as AnalyticsData);
-          storageService.setCachedAnalytics(cacheKey, data); // Cache the data
+        // Create a promise that rejects after 2 seconds
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => {
+            reject(new Error('Data loading timeout after 2 seconds'));
+          }, 2000);
+        });
+
+        try {
+          // Race the API call against the timeout
+          const data = await Promise.race([
+            youtubeService.getDashboardAnalytics(),
+            timeoutPromise
+          ]);
+          
+          if (data) {
+            setAnalyticsData(data as AnalyticsData);
+            storageService.setCachedAnalytics(cacheKey, data); // Cache the data
+          }
+        } catch (timeoutError) {
+          if (timeoutError instanceof Error && timeoutError.message.includes('timeout')) {
+            console.warn('Dashboard data loading timed out after 2 seconds');
+            toast({
+              title: "Loading timeout",
+              description: "Dashboard data is taking longer than expected. Please try refreshing.",
+              variant: "destructive",
+            });
+          } else {
+            throw timeoutError; // Re-throw non-timeout errors
+          }
         }
       }
 

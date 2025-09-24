@@ -1,6 +1,7 @@
 // Storage service for managing user data, preferences, and app state
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { connectionStateManager } from './connectionStateManager';
 import type { Database } from '@/integrations/supabase/types';
 
 type ChannelConnection = Database['public']['Tables']['channel_connections']['Row'];
@@ -94,7 +95,7 @@ class StorageService {
     }
   }
 
-  // User Profile Management (Supabase)
+  // User Profile Management (Supabase profiles table)
   async getUserProfile(userId: string): Promise<{ data: UserProfile | null; error: any }> {
     try {
       const { data, error } = await supabase
@@ -152,6 +153,12 @@ class StorageService {
   // Channel Connections Management (Supabase)
   async getChannelConnections(): Promise<ChannelConnection[]> {
     try {
+      // Check if connection process is in progress and block if so
+      if (connectionStateManager.isConnecting()) {
+        console.log('🔒 getChannelConnections() blocked - connection in progress');
+        return [];
+      }
+      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
