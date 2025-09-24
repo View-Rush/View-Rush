@@ -19,7 +19,7 @@ import {
   Youtube
 } from "lucide-react";
 import { toast } from '@/hooks/use-toast';
-import { youtubeService } from '@/services/youtubeService';
+import { youtubeService } from '@/services/youtube';
 import { APIKeyDebugger } from '@/components/ui/api-key-debugger';
 import Header from "@/components/layout/Header";
 

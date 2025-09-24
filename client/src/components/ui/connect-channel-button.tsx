@@ -33,7 +33,10 @@ export function ConnectChannelButton({
             Connect your YouTube channel to start tracking your analytics and get insights
           </p>
           <Button 
-            onClick={onConnect} 
+            onClick={() => {
+              console.log('🔘 Connect button clicked (card variant)');
+              onConnect();
+            }} 
             size={buttonSizes[size]} 
             disabled={loading}
           >
@@ -47,7 +50,10 @@ export function ConnectChannelButton({
 
   return (
     <Button 
-      onClick={onConnect} 
+      onClick={() => {
+        console.log('🔘 Connect button clicked (button variant)');
+        onConnect();
+      }} 
       size={buttonSizes[size]}
       disabled={loading}
       className={className}

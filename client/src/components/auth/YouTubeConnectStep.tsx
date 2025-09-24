@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Youtube, Info } from 'lucide-react';
-import { youtubeService} from '@/services/youtubeService';
+import { youtubeService } from '@/services/youtube';
 import { toast } from '@/hooks/use-toast';
 
 interface YouTubeConnectStepProps {

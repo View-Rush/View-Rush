@@ -13,7 +13,8 @@ import Settings from "./pages/Settings";
 import Trending from "./pages/Trending";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
-import YouTubeCallback from "./pages/YouTubeCallback";
+// import YouTubeCallback from "./pages/YouTubeCallback";
+import YouTubePopupCallback from "./pages/YouTubePopupCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,13 +30,17 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route 
+            {/* <Route 
               path="/auth/youtube/callback" 
               element={
                 <ProtectedRoute>
                   <YouTubeCallback />
                 </ProtectedRoute>
               } 
+            /> */}
+            <Route 
+              path="/auth/youtube/callback" 
+              element={<YouTubePopupCallback />} 
             />
             <Route 
               path="/dashboard" 

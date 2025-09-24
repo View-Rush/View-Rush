@@ -21,7 +21,7 @@ import {
   Youtube
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { youtubeService, type ChannelAnalytics } from '@/services/youtubeService';
+import { youtubeService, type ChannelAnalytics } from '@/services/youtube';
 import Header from '@/components/layout/Header';
 import type { Database } from '@/integrations/supabase/types';
 

@@ -21,7 +21,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { youtubeService } from '@/services/youtubeService';
+import { youtubeService } from '@/services/youtube';
 import { storageService } from '@/services/storageService';
 import { useChannelConnections } from '@/hooks/useChannelConnections';
 import { ChannelConnectionsList } from '@/components/ui/channel-connections-list';

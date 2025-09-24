@@ -289,7 +289,7 @@ const Settings = () => {
               onRefresh={refreshConnection}
               loading={connectionsLoading || connecting}
               title="Connected Accounts"
-              showAddButton={false}
+              showAddButton={true}
             />
           </TabsContent>
 
