@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Youtube, Plus } from 'lucide-react';
+import { Youtube } from 'lucide-react';
 import { ChannelConnectionCard } from './channel-connection-card';
 import { ConnectChannelButton } from './connect-channel-button';
 import type { Database } from '@/integrations/supabase/types';
@@ -24,7 +24,7 @@ export function ChannelConnectionsList({
   onDisconnect,
   onRefresh,
   loading = false,
-  title = "Connected Channels",
+  title = "Saved Channels",
   showAddButton = true,
   compact = false,
   variant = 'card'
@@ -36,7 +36,7 @@ export function ChannelConnectionsList({
           {showAddButton && (
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                {connections.length} channel{connections.length > 1 ? 's' : ''} connected
+                {connections.length} channel{connections.length > 1 ? 's' : ''} saved
               </p>
               <ConnectChannelButton
                 onConnect={onConnect}

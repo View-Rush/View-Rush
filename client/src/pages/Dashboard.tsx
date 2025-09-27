@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   TrendingUp, 
@@ -11,137 +9,50 @@ import {
   Clock, 
   Calendar,
   Settings,
-  Plus,
   RefreshCw,
-  Youtube,
   BarChart3,
   Target,
   Lightbulb,
-  ExternalLink,
-  Trash2
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { youtubeService } from '@/services/youtube';
-import { storageService } from '@/services/storageService';
-import { useChannelConnections } from '@/hooks/useChannelConnections';
+import { useAuth } from '@/hooks/useAuth';
 import { ChannelConnectionsList } from '@/components/ui/channel-connections-list';
-import { ConnectChannelButton } from '@/components/ui/connect-channel-button';
 import { YouTubeConnectionTest } from '@/components/ui/youtube-connection-test';
 import { AuthDebugTest } from '@/components/ui/auth-debug-test';
 import { YouTubeAPITest } from '@/components/ui/youtube-api-test';
 import Header from '@/components/layout/Header';
-import type { Database } from '@/integrations/supabase/types';
+import { useDashboard } from '@/contexts/DashboardContext';
 
-type ChannelConnection = Database['public']['Tables']['channel_connections']['Row'];
-
-interface AnalyticsData {
-  channel_stats: {
-    subscriber_count: number;
-    total_views: number;
-    total_videos: number;
-    average_views_per_video: number;
-  };
-  recent_videos: Array<{
-    id: string;
-    title: string;
-    views: number;
-    likes: number;
-    comments: number;
-    published_at: string;
-  }>;
-  performance_metrics: {
-    best_performing_time: string;
-    best_performing_day: string;
-    average_engagement_rate: number;
-  };
-}
-
-interface PredictionsData {
-  optimal_publish_times: Array<{
-    day: string;
-    time: string;
-    predicted_views: number;
-    confidence: number;
-  }>;
-  content_recommendations: Array<{
-    category: string;
-    predicted_engagement: number;
-    suggested_duration: string;
-  }>;
-}
-
-const DashboardNew = () => {
+const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
-  const [predictionsData, setPredictionsData] = useState<PredictionsData | null>(null);
   const [selectedTab, setSelectedTab] = useState('overview');
   
-  // Use the new custom hook for channel connections
+  // Use dashboard context for all data management
   const {
-    connections: channelConnections,
-    loading: connectionsLoading,
+    analyticsData,
+    predictionsData,
+    loading,
+    hasConnections,
+    channelConnections,
+    connectionsLoading,
     connecting,
+    refreshData,
     connectChannel,
     disconnectChannel: handleDisconnectChannel,
-    refreshConnection
-  } = useChannelConnections();
-
-  // Load initial data
-  useEffect(() => {
-    const loadData = async () => {
-      if (user) {
-        await loadDashboardData();
-      }
-    };
-    loadData();
-  }, [user]);
-
-  const loadDashboardData = async () => {
-    setLoading(true);
-    try {
-      // Check cache first
-      const cacheKey = `analytics_${user?.id}`;
-      let cached = storageService.getCachedAnalytics(cacheKey);
-      
-      if (cached) {
-        setAnalyticsData(cached);
-      } else {
-        // Fetch from API using the new dashboard-specific method
-        const data = await youtubeService.getDashboardAnalytics();
-        if (data) {
-          setAnalyticsData(data as AnalyticsData);
-          storageService.setCachedAnalytics(cacheKey, data); // Cache the data
-        }
-      }
-
-      // Get predictions - removing for now since apiService doesn't exist
-      // const predictions = await apiService.getPredictions({
-      //   channel_id: 'default',
-      //   subscriber_count: analyticsData?.channel_stats?.subscriber_count || 0,
-      // });
-      // setPredictionsData(predictions as PredictionsData);
-
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-      toast({
-        title: "Error loading data",
-        description: "Failed to load dashboard data. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    refreshConnections
+  } = useDashboard();
 
   const handleRefreshData = async () => {
-    // Clear cache and reload
-    storageService.clearCachedAnalytics();
-    await loadDashboardData();
-    toast({
-      title: "Data refreshed",
-      description: "Dashboard data has been updated successfully.",
-    });
+    if (!hasConnections) {
+      toast({
+        title: "No connections",
+        description: "Connect a YouTube channel first to refresh data.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    await refreshData();
   };
 
   if (authLoading) {
@@ -184,7 +95,7 @@ const DashboardNew = () => {
         connections={channelConnections}
         onConnect={connectChannel}
         onDisconnect={handleDisconnectChannel}
-        onRefresh={refreshConnection}
+        onRefresh={refreshConnections}
         loading={connectionsLoading || connecting}
         showAddButton={true}
       />
@@ -438,8 +349,9 @@ const DashboardNew = () => {
                   variant="outline" 
                   size="sm"
                   onClick={() => {
-                    storageService.clearCachedAnalytics();
-                    toast({ title: "Cache cleared", description: "All cached data has been cleared." });
+                    // Clear cache and refresh data
+                    handleRefreshData();
+                    toast({ title: "Cache cleared", description: "All cached data has been cleared and refreshed." });
                   }}
                 >
                   Clear
@@ -454,4 +366,4 @@ const DashboardNew = () => {
   );
 };
 
-export default DashboardNew;
+export default Dashboard;

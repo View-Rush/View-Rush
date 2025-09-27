@@ -111,13 +111,13 @@ export class YouTubeService {
       const channelInfo = await youtubeApiClient.getChannelInfo(tokenResponse.access_token);
 
       // Save connection to database
-    //   logger.debug('YouTubeService', 'Saving connection to database');
+      logger.debug('YouTubeService', 'Saving connection to database');
       await youtubeDatabaseService.saveConnection(tokenResponse, channelInfo);
 
       // Sync initial analytics (non-blocking)
-    //   this.syncChannelAnalytics().catch(error => {
-    //     logger.warn('YouTubeService', 'Initial analytics sync failed', { error });
-    //   });
+      this.syncChannelAnalytics().catch(error => {
+        logger.warn('YouTubeService', 'Initial analytics sync failed', { error });
+      });
 
       toast({
         title: "YouTube Connected",
@@ -128,19 +128,16 @@ export class YouTubeService {
         channelId: channelInfo.id,
         channelTitle: channelInfo.title
       });
-
+      // Reload the page to reflect the new connection
+      window.location.reload();
       return true;
     } catch (error) {
       logger.error('YouTubeService', 'YouTube connection failed', { error });
-      
-      // The error handler will show appropriate toast
       throw errorHandler.handleError(error, 'YouTubeService');
     }
   }
 
-  /**
-   * Disconnect YouTube account
-   */
+   // Disconnect YouTube account
   async disconnectAccount(connectionId?: string): Promise<void> {
     logger.info('YouTubeService', 'Disconnecting YouTube account');
 
@@ -195,19 +192,20 @@ export class YouTubeService {
   /**
    * Get channel analytics for dashboard
    */
-  async getChannelAnalytics(connectionId?: string): Promise<ChannelAnalytics | null> {
+  async getChannelAnalytics(connectionId?: string, connections?: any[]): Promise<ChannelAnalytics | null> {
     logger.info('YouTubeService', 'Fetching channel analytics');
 
     try {
-      const connections = await youtubeDatabaseService.getUserConnections();
+      // Use provided connections or fetch from database
+      const userConnections = connections || await youtubeDatabaseService.getUserConnections();
       
-      if (connections.length === 0) {
+      if (userConnections.length === 0) {
         return null;
       }
 
       const connection = connectionId 
-        ? connections.find(c => c.id === connectionId)
-        : connections.find(c => c.is_active) || connections[0];
+        ? userConnections.find(c => c.id === connectionId)
+        : userConnections.find(c => c.is_active) || userConnections[0];
 
       if (!connection) {
         return null;
@@ -337,10 +335,10 @@ export class YouTubeService {
   /**
    * Get analytics data formatted for Dashboard components
    */
-  async getDashboardAnalytics(connectionId?: string) {
+  async getDashboardAnalytics(connectionId?: string, connections?: any[]) {
     logger.info('YouTubeService', 'Getting dashboard analytics');
     
-    const rawAnalytics = await this.getChannelAnalytics(connectionId);
+    const rawAnalytics = await this.getChannelAnalytics(connectionId, connections);
     return this.transformAnalyticsForDashboard(rawAnalytics);
   }
 
@@ -348,7 +346,7 @@ export class YouTubeService {
    * Sync analytics for a single channel
    */
   private async syncSingleChannelAnalytics(connection: any): Promise<void> {
-    logger.debug('YouTubeService', 'Syncing analytics for connection', { connectionId: connection.id });
+    logger.debug('YouTubeService', 'Syncing analytics for single connection', { connectionId: connection.id });
 
     try {
       const tokens = await youtubeDatabaseService.getConnectionTokens(connection.id);
@@ -365,7 +363,7 @@ export class YouTubeService {
       const videos = await youtubeApiClient.getChannelVideos(
         tokens.access_token,
         connection.channel_id,
-        20 // Get more videos for better metrics
+        50 // Get more videos for better metrics
       );
 
       const performanceMetrics = this.calculatePerformanceMetrics(videos);

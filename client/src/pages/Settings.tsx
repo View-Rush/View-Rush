@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import Header from '@/components/layout/Header';
-import { youtubeService } from '@/services/youtubeService';
+import { youtubeService } from '@/services/youtube';
 import { useChannelConnections } from '@/hooks/useChannelConnections';
 import { ChannelConnectionsList } from '@/components/ui/channel-connections-list';
 import { supabase } from '@/integrations/supabase/client';

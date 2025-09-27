@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { DashboardProvider } from "@/contexts/DashboardContext";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
@@ -13,7 +14,6 @@ import Settings from "./pages/Settings";
 import Trending from "./pages/Trending";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
-// import YouTubeCallback from "./pages/YouTubeCallback";
 import YouTubePopupCallback from "./pages/YouTubePopupCallback";
 import NotFound from "./pages/NotFound";
 
@@ -30,14 +30,6 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
-            {/* <Route 
-              path="/auth/youtube/callback" 
-              element={
-                <ProtectedRoute>
-                  <YouTubeCallback />
-                </ProtectedRoute>
-              } 
-            /> */}
             <Route 
               path="/auth/youtube/callback" 
               element={<YouTubePopupCallback />} 
@@ -46,7 +38,9 @@ const App = () => (
               path="/dashboard" 
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <DashboardProvider>
+                    <Dashboard />
+                  </DashboardProvider>
                 </ProtectedRoute>
               } 
             />

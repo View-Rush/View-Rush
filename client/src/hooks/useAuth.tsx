@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { authService, SignUpData} from '@/services/auth';
-import { storageService } from '@/services/storageService';
 import { authHelper } from '@/services/authHelper';
 
 interface AuthContextType {
@@ -101,17 +100,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           
           // Update authHelper with the authenticated user
           authHelper.setUserFromContext(session.user);
-          
-          // Initialize user profile in Supabase
-          try {
-            await storageService.updateUserProfile({
-              user_id: session.user.id,
-              display_name: session.user.user_metadata?.display_name || null,
-              avatar_url: session.user.user_metadata?.avatar_url || null,
-            });
-          } catch (error) {
-            console.error('Error updating user profile:', error);
-          }
           
           // Only navigate if we're currently on auth page
           if (window.location.pathname === '/auth') {

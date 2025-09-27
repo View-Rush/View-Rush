@@ -3,32 +3,11 @@ import { Database } from '@/integrations/supabase/types';
 import { logger } from '../utils/logger';
 import { errorHandler } from '../utils/errorHandler';
 import { authHelper } from '@/services/authHelper';
-import { SecureTokenService } from '@/services/secureTokenService.v2';
+import { DecryptedTokens, SecureTokenService } from '@/services/secureTokenService';
 import { YouTubeChannel, TokenResponse } from './apiClient';
-import { testChannelInsertion } from '@/integrations/supabase/test_channel_insertion';
 
 type ChannelConnection = Database['public']['Tables']['channel_connections']['Row'];
 type ChannelConnectionInsert = Database['public']['Tables']['channel_connections']['Insert'];
-
-// type ChannelConnectionInsert = {
-//   channel_avatar_url?: string | null;
-//   channel_handle?: string | null;
-//   channel_id: string;
-//   channel_name: string;
-//   created_at?: string;
-//   error_message?: string | null;
-//   id?: string;
-//   is_active?: boolean;
-//   last_sync_at?: string | null;
-//   metadata?: JSON | null;
-//   platform: string;
-//   scope_granted?: string[] | null;
-//   sync_status?: string | null;
-//   token_expires_at?: string | null;
-//   tokens_encrypted?: boolean | null;
-//   updated_at?: string;
-//   user_id: string;
-// };
 
 export interface ConnectionData {
   channel_avatar_url: string | null;
@@ -93,6 +72,8 @@ export class YouTubeDatabaseService {
         .order('created_at', { ascending: false })
         .limit(1);
 
+      logger.info('Connections fetched', "" + { count: connections?.length || 0 });
+
       if (error) {
         throw errorHandler.createDatabaseError('Failed to fetch connection status', error);
       }
@@ -121,7 +102,6 @@ export class YouTubeDatabaseService {
 
 
  // Save a new YouTube connection to the database
-   
   async saveConnection(tokenData: TokenResponse, channelInfo: YouTubeChannel): Promise<ChannelConnection> {
     logger.info('YouTubeDB', 'Saving new connection to database');
 
@@ -133,7 +113,7 @@ export class YouTubeDatabaseService {
       logger.debug('YouTubeDB', 'User authenticated', { userId: user.id });
 
       // Deactivate existing connections
-    //   await this.deactivateExistingConnections(user.id);
+      await this.deactivateExistingConnections(user.id);
 
       // Calculate token expiration
       const expiresAt = new Date();
@@ -161,28 +141,25 @@ export class YouTubeDatabaseService {
 
       logger.debug('YouTubeDB', 'Connection data prepared', connectionData);
 
-      // Insert connection
-    //   const { data: insertedConnection, error: insertError } = await supabase
-    //     .from('channel_connections')
-    //     .insert(connectionData)
-    //     .select('*')
-    //     .single();
-
-        const { data: insertedConnection, error: insertError } = await testChannelInsertion(connectionData);
+    //  Insert connection
+      const { data: insertedConnection, error: insertError } = await supabase
+        .from('channel_connections')
+        .insert(connectionData)
+        .select('*')
+        .single();
 
       if (insertError) {
         throw errorHandler.createDatabaseError('Failed to insert connection', insertError);
       }
 
       // Store encrypted tokens
-    //   const tokenResult = await SecureTokenService.storeTokens(insertedConnection.id, {
-    //     access_token: tokenData.access_token,
-    //     refresh_token: tokenData.refresh_token || undefined,
-    //   });
+      const tokenResult = await SecureTokenService.storeTokens(insertedConnection.id,
+        tokenData
+      );
 
-    //   if (!tokenResult.success) {
-    //     throw errorHandler.createDatabaseError('Failed to store tokens', tokenResult.error);
-    //   }
+      if (!tokenResult.success) {
+        throw errorHandler.createDatabaseError('Failed to store tokens', tokenResult.error);
+      }
 
       logger.info('YouTubeDB', 'Connection saved successfully', { connectionId: insertedConnection.id });
       return insertedConnection;
@@ -335,7 +312,7 @@ export class YouTubeDatabaseService {
   /**
    * Get stored tokens for a connection
    */
-  async getConnectionTokens(connectionId: string): Promise<{ access_token: string; refresh_token?: string } | null> {
+  async getConnectionTokens(connectionId: string): Promise<DecryptedTokens | null> {
     logger.debug('YouTubeDB', 'Retrieving connection tokens', { connectionId });
 
     try {
@@ -346,10 +323,7 @@ export class YouTubeDatabaseService {
         return null;
       }
 
-      return {
-        access_token: tokens.access_token || '',
-        refresh_token: tokens.refresh_token || undefined
-      };
+      return tokens;
     } catch (error) {
       logger.error('YouTubeDB', 'Error retrieving tokens', { error, connectionId });
       return null;
@@ -366,6 +340,8 @@ export class YouTubeDatabaseService {
       .update({ is_active: false })
       .eq('user_id', userId)
       .eq('platform', 'youtube');
+
+      logger.info('YouTubeDB', 'Existing connections deactivation attempted', { userId });
 
     if (error) {
       logger.warn('YouTubeDB', 'Error deactivating existing connections', { error });

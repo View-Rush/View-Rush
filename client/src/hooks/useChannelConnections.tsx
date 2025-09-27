@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { youtubeService } from '@/services/youtube';
+import { connectionStateManager } from '@/services/connectionStateManager';
 import type { Database } from '@/integrations/supabase/types';
 
 type ChannelConnection = Database['public']['Tables']['channel_connections']['Row'];
@@ -10,9 +11,15 @@ export function useChannelConnections() {
   const [connections, setConnections] = useState<ChannelConnection[]>([]);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
+  const [lastLoadTime, setLastLoadTime] = useState<number>(0);
   const { user, loading: authLoading } = useAuth();
 
-  const loadConnections = async () => {
+  // Computed properties to help components make decisions
+  const hasConnections = connections.length > 0;
+  const hasActiveConnections = connections.some(conn => conn.is_active);
+  const activeConnectionsCount = connections.filter(conn => conn.is_active).length;
+
+  const loadConnections = async (forceRefresh = false) => {
     try {
       console.log('🔄 Loading connections...');
       console.log('🔄 Auth state - User:', user?.email, 'Auth loading:', authLoading);
@@ -30,10 +37,53 @@ export function useChannelConnections() {
         return;
       }
       
+      // Prevent redundant calls within 3 seconds unless forced
+      const now = Date.now();
+      if (!forceRefresh && (now - lastLoadTime) < 3000) {
+        console.log('⏭️ Skipping connection load, recent data available');
+        setLoading(false);
+        return;
+      }
+      
+      // Check if connection process is in progress and block if so
+      if (connectionStateManager.isConnecting()) {
+        console.log('🔒 loadConnections() blocked - connection in progress');
+        setLoading(false);
+        return;
+      }
+      
       setLoading(true);
-      const userConnections = await youtubeService.getUserConnections();
-      console.log('✅ Connections loaded:', userConnections.length);
-      setConnections(userConnections);
+      
+      // Create a promise that rejects after 2 seconds
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Channel connections loading timeout after 2 seconds'));
+        }, 2000);
+      });
+
+      try {
+        // Race the API call against the timeout
+        const userConnections = await Promise.race([
+          youtubeService.getUserConnections(),
+          timeoutPromise
+        ]);
+        
+        console.log('✅ Connections loaded:', userConnections.length);
+        setConnections(userConnections);
+        setLastLoadTime(Date.now()); // Update cache timestamp
+      } catch (timeoutError) {
+        if (timeoutError instanceof Error && timeoutError.message.includes('timeout')) {
+          console.warn('Channel connections loading timed out after 2 seconds');
+          setConnections([]); // Set empty array on timeout
+          toast({
+            title: "Loading timeout",
+            description: "Channel connections are taking longer than expected. Please try refreshing.",
+            variant: "destructive",
+          });
+        } else {
+          throw timeoutError; // Re-throw non-timeout errors
+        }
+      }
     } catch (error) {
       console.error('🔥 Error loading connections:', error);
       toast({
@@ -51,9 +101,20 @@ export function useChannelConnections() {
     try {
       console.log('🔗 Connect channel button clicked');
       setConnecting(true);
+      
+      // Add a timeout to reset connecting state after 5 seconds
+      // This handles cases where the OAuth redirect doesn't complete properly
+      const connectionTimeout = setTimeout(() => {
+        console.log('🔗 Connection timeout reached, resetting connecting state');
+        setConnecting(false);
+      }, 5000);
+      
       console.log('🔗 Calling youtubeService.connectAccount()');
       await youtubeService.connectAccount();
       console.log('🔗 youtubeService.connectAccount() completed');
+      
+      // Clear the timeout if we reach this point (though we likely won't due to redirect)
+      clearTimeout(connectionTimeout);
     } catch (error) {
       console.error('🔥 YouTube connection error:', error);
       toast({
@@ -70,7 +131,7 @@ export function useChannelConnections() {
   const disconnectChannel = async (connectionId: string) => {
     try {
       await youtubeService.disconnectAccount(connectionId);
-      await loadConnections();
+      await loadConnections(true); // Force refresh after disconnect
       toast({
         title: "Channel Disconnected",
         description: "YouTube channel has been disconnected successfully.",
@@ -85,10 +146,10 @@ export function useChannelConnections() {
     }
   };
 
-  const refreshConnection = async (connectionId: string) => {
+  const refreshConnection = async () => {
     try {
       await youtubeService.syncChannelAnalytics();
-      await loadConnections();
+      await loadConnections(true); // Force refresh after sync
       toast({
         title: "Data Refreshed",
         description: "Channel data has been refreshed successfully.",
@@ -105,6 +166,10 @@ export function useChannelConnections() {
 
   useEffect(() => {
     console.log('🔄 useChannelConnections useEffect triggered - User:', user?.email, 'Auth loading:', authLoading);
+    
+    // Reset connecting state on mount in case we returned from OAuth redirect
+    setConnecting(false);
+    
     loadConnections();
   }, [user, authLoading]); // Depend on user and authLoading state
 
@@ -115,6 +180,10 @@ export function useChannelConnections() {
     loadConnections,
     connectChannel,
     disconnectChannel,
-    refreshConnection
+    refreshConnection,
+    // Computed properties for easier decision making
+    hasConnections,
+    hasActiveConnections,
+    activeConnectionsCount
   };
 }
