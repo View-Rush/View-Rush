@@ -11,9 +11,15 @@ export function useChannelConnections() {
   const [connections, setConnections] = useState<ChannelConnection[]>([]);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
+  const [lastLoadTime, setLastLoadTime] = useState<number>(0);
   const { user, loading: authLoading } = useAuth();
 
-  const loadConnections = async () => {
+  // Computed properties to help components make decisions
+  const hasConnections = connections.length > 0;
+  const hasActiveConnections = connections.some(conn => conn.is_active);
+  const activeConnectionsCount = connections.filter(conn => conn.is_active).length;
+
+  const loadConnections = async (forceRefresh = false) => {
     try {
       console.log('🔄 Loading connections...');
       console.log('🔄 Auth state - User:', user?.email, 'Auth loading:', authLoading);
@@ -27,6 +33,14 @@ export function useChannelConnections() {
       if (!user) {
         console.log('❌ No authenticated user, clearing connections');
         setConnections([]);
+        setLoading(false);
+        return;
+      }
+      
+      // Prevent redundant calls within 3 seconds unless forced
+      const now = Date.now();
+      if (!forceRefresh && (now - lastLoadTime) < 3000) {
+        console.log('⏭️ Skipping connection load, recent data available');
         setLoading(false);
         return;
       }
@@ -56,6 +70,7 @@ export function useChannelConnections() {
         
         console.log('✅ Connections loaded:', userConnections.length);
         setConnections(userConnections);
+        setLastLoadTime(Date.now()); // Update cache timestamp
       } catch (timeoutError) {
         if (timeoutError instanceof Error && timeoutError.message.includes('timeout')) {
           console.warn('Channel connections loading timed out after 2 seconds');
@@ -116,7 +131,7 @@ export function useChannelConnections() {
   const disconnectChannel = async (connectionId: string) => {
     try {
       await youtubeService.disconnectAccount(connectionId);
-      await loadConnections();
+      await loadConnections(true); // Force refresh after disconnect
       toast({
         title: "Channel Disconnected",
         description: "YouTube channel has been disconnected successfully.",
@@ -131,10 +146,10 @@ export function useChannelConnections() {
     }
   };
 
-  const refreshConnection = async (connectionId: string) => {
+  const refreshConnection = async () => {
     try {
       await youtubeService.syncChannelAnalytics();
-      await loadConnections();
+      await loadConnections(true); // Force refresh after sync
       toast({
         title: "Data Refreshed",
         description: "Channel data has been refreshed successfully.",
@@ -165,6 +180,10 @@ export function useChannelConnections() {
     loadConnections,
     connectChannel,
     disconnectChannel,
-    refreshConnection
+    refreshConnection,
+    // Computed properties for easier decision making
+    hasConnections,
+    hasActiveConnections,
+    activeConnectionsCount
   };
 }

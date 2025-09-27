@@ -1,6 +1,5 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Youtube, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -90,7 +89,7 @@ export function ChannelConnectionCard({
           <p className="font-medium">{connection.channel_name}</p>
           <p className="text-sm text-muted-foreground">
             {connection.platform.charAt(0).toUpperCase() + connection.platform.slice(1)}
-            {connection.channel_handle && ` • @${connection.channel_handle}`}
+            {connection.channel_handle && ` • ${connection.channel_handle}`}
           </p>
           {connection.last_sync_at && (
             <p className="text-xs text-muted-foreground">
