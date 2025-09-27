@@ -247,7 +247,7 @@ export class YouTubeApiClient {
     logger.info('YouTubeAPI', 'Fetching trending videos', { regionCode, categoryId, maxResults });
 
     try {
-      let endpoint = `/videos?part=snippet,statistics&chart=mostPopular&regionCode=${regionCode}&maxResults=${maxResults}`;
+      let endpoint = `/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${regionCode}&maxResults=${maxResults}`;
       
       if (categoryId) {
         endpoint += `&videoCategoryId=${categoryId}`;
@@ -262,7 +262,12 @@ export class YouTubeApiClient {
         thumbnails: item.snippet.thumbnails,
         channelTitle: item.snippet.channelTitle,
         publishedAt: item.snippet.publishedAt,
-        statistics: item.statistics,
+        categoryId: item.snippet.categoryId,
+        // Extract statistics to top level for easier access
+        viewCount: item.statistics?.viewCount || '0',
+        likeCount: item.statistics?.likeCount || '0',
+        commentCount: item.statistics?.commentCount || '0',
+        duration: item.contentDetails?.duration,
       }));
 
       logger.debug('YouTubeAPI', 'Trending videos retrieved', { count: videos.length });

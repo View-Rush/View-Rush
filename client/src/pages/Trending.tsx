@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   TrendingUp, 
-  Globe, 
   Search, 
-  Filter, 
   Eye, 
   ThumbsUp, 
   MessageSquare,
@@ -20,24 +18,23 @@ import {
 } from "lucide-react";
 import { toast } from '@/hooks/use-toast';
 import { youtubeService } from '@/services/youtube';
-import { APIKeyDebugger } from '@/components/ui/api-key-debugger';
 import Header from "@/components/layout/Header";
 
 interface TrendingVideo {
   id: string;
   title: string;
   channelTitle: string;
-  viewCount: string;
-  likeCount: string;
-  commentCount: string;
-  duration: string;
+  viewCount?: string; 
+  likeCount?: string; 
+  commentCount?: string;
+  duration?: string; 
   publishedAt: string;
   thumbnails: {
     high: {
       url: string;
     };
   };
-  categoryId: string;
+  categoryId?: string; 
 }
 
 const Trending = () => {
@@ -145,8 +142,10 @@ const Trending = () => {
     }
   };
 
-  const formatNumber = (num: string) => {
+  const formatNumber = (num: string | undefined) => {
+    if (!num) return '0';
     const number = parseInt(num);
+    if (isNaN(number)) return '0';
     if (number >= 1000000) {
       return (number / 1000000).toFixed(1) + 'M';
     } else if (number >= 1000) {
@@ -155,7 +154,10 @@ const Trending = () => {
     return number.toString();
   };
 
-  const formatDuration = (duration: string) => {
+  const formatDuration = (duration?: string) => {
+    // Handle undefined or null duration
+    if (!duration) return '0:00';
+    
     // Convert ISO 8601 duration to readable format
     const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
     if (!match) return duration;
@@ -193,7 +195,8 @@ const Trending = () => {
     video.channelTitle.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getCategoryName = (categoryId: string) => {
+  const getCategoryName = (categoryId?: string) => {
+    if (!categoryId) return 'General';
     return categories.find(cat => cat.id === categoryId)?.name || 'Unknown';
   };
 
@@ -287,43 +290,6 @@ const Trending = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Debug Panel - Development Only */}
-        {process.env.NODE_ENV === 'development' && (
-          <>
-            <APIKeyDebugger />
-            <Card className="mb-6 border-orange-200 bg-orange-50">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium text-sm text-orange-800">Debug Info</h4>
-                  <Badge variant="outline" className="text-xs">
-                    {import.meta.env.VITE_YOUTUBE_API_KEY ? 'API Key Set' : 'API Key Missing'}
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-orange-700">
-                  <div>
-                    <strong>Total Videos:</strong> {trendingVideos.length}
-                  </div>
-                  <div>
-                    <strong>Filtered:</strong> {filteredVideos.length}
-                  </div>
-                  <div>
-                    <strong>Loading:</strong> {loading ? 'Yes' : 'No'}
-                  </div>
-                </div>
-                <Button 
-                  onClick={loadTrendingVideos} 
-                  size="sm" 
-                  variant="outline" 
-                  className="mt-2"
-                  disabled={loading}
-                >
-                  Test API Call
-                </Button>
-              </CardContent>
-            </Card>
-          </>
-        )}
 
         {/* Video List */}
         {filteredVideos.length === 0 && !loading ? (
