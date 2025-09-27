@@ -202,11 +202,11 @@ export const Features = () => {
                     <PlayCircle className="h-10 w-10 text-primary mx-auto mb-3 group-hover/stat:scale-110 transition-transform duration-300" />
                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-success rounded-full opacity-80 group-hover/stat:opacity-100 transition-opacity duration-300 group-hover/stat:scale-125"></div>
                   </div>
-                  <div className="font-bold text-xl mb-1 group-hover/stat:text-primary transition-colors duration-300">1M+</div>
+                  <div className="font-bold text-xl mb-1 group-hover/stat:text-primary transition-colors duration-300">100K+</div>
                   <div className="text-sm text-muted-foreground">Videos/Hour</div>
                   <div className="text-xs text-primary mt-1 opacity-0 group-hover/stat:opacity-100 transition-opacity duration-300">
                     <TrendingUp className="h-3 w-3 inline mr-1" />
-                    +15% this week
+                    +5% this week
                   </div>
                 </div>
                 
@@ -260,7 +260,7 @@ export const Features = () => {
                 </div>
                 
                 {/* Orbiting elements with controlled animation */}
-                <div className="absolute inset-0 group-hover/viz:animate-spin-slow transition-all duration-1000 group-hover/viz:duration-[8s]">
+                <div className="absolute inset-0 group-hover/viz:animate-spin-slow transition-all duration-1000 group-hover/viz:duration-8000">
                   <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                     <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/50 group-hover/viz:scale-110 transition-all duration-300">
                       <Sparkles className="h-3 w-3 text-white group-hover/viz:rotate-45 transition-transform duration-300" />

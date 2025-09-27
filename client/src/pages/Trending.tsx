@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { Card } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   TrendingUp, 
   Globe, 
@@ -13,13 +14,39 @@ import {
   MessageSquare,
   Clock,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  PlayCircle,
+  Youtube
 } from "lucide-react";
+import { toast } from '@/hooks/use-toast';
+import { youtubeService } from '@/services/youtube';
+import { APIKeyDebugger } from '@/components/ui/api-key-debugger';
 import Header from "@/components/layout/Header";
 
+interface TrendingVideo {
+  id: string;
+  title: string;
+  channelTitle: string;
+  viewCount: string;
+  likeCount: string;
+  commentCount: string;
+  duration: string;
+  publishedAt: string;
+  thumbnails: {
+    high: {
+      url: string;
+    };
+  };
+  categoryId: string;
+}
+
 const Trending = () => {
-  const [selectedCountry, setSelectedCountry] = useState("United States");
+  const [selectedCountry, setSelectedCountry] = useState("US");
+  const [selectedCategory, setSelectedCategory] = useState("0");
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [trendingVideos, setTrendingVideos] = useState<TrendingVideo[]>([]);
 
   const countries = [
     { name: "United States", flag: "🇺🇸", code: "US" },
@@ -29,261 +56,370 @@ const Trending = () => {
     { name: "Germany", flag: "🇩🇪", code: "DE" },
     { name: "France", flag: "🇫🇷", code: "FR" },
     { name: "Japan", flag: "🇯🇵", code: "JP" },
-    { name: "Brazil", flag: "🇧🇷", code: "BR" }
+    { name: "Brazil", flag: "🇧🇷", code: "BR" },
+    { name: "India", flag: "🇮🇳", code: "IN" },
+    { name: "South Korea", flag: "🇰🇷", code: "KR" }
   ];
 
   const categories = [
-    "All", "Music", "Gaming", "Entertainment", "News & Politics", 
-    "Howto & Style", "Education", "Science & Technology", "Sports"
+    { id: "0", name: "All" },
+    { id: "1", name: "Film & Animation" },
+    { id: "2", name: "Autos & Vehicles" },
+    { id: "10", name: "Music" },
+    { id: "15", name: "Pets & Animals" },
+    { id: "17", name: "Sports" },
+    { id: "19", name: "Travel & Events" },
+    { id: "20", name: "Gaming" },
+    { id: "22", name: "People & Blogs" },
+    { id: "23", name: "Comedy" },
+    { id: "24", name: "Entertainment" },
+    { id: "25", name: "News & Politics" },
+    { id: "26", name: "Howto & Style" },
+    { id: "27", name: "Education" },
+    { id: "28", name: "Science & Technology" }
   ];
 
-  const trendingVideos = [
-    {
-      rank: 1,
-      title: "Breaking: Major Tech Announcement Changes Everything",
-      channel: "TechNews Today",
-      views: "2.1M",
-      likes: "156K",
-      comments: "12.3K",
-      duration: "12:45",
-      publishedAt: "3 hours ago",
-      category: "Science & Technology",
-      thumbnail: "https://via.placeholder.com/300x168/ff0000/ffffff?text=Tech+News",
-      growth: "+45%"
-    },
-    {
-      rank: 2,
-      title: "Epic Gaming Moments That Broke the Internet",
-      channel: "GameHighlights",
-      views: "1.8M",
-      likes: "98K",
-      comments: "8.7K",
-      duration: "15:23",
-      publishedAt: "6 hours ago",
-      category: "Gaming",
-      thumbnail: "https://via.placeholder.com/300x168/ff0000/ffffff?text=Gaming",
-      growth: "+38%"
-    },
-    {
-      rank: 3,
-      title: "Celebrity Interview Reveals Shocking Truth",
-      channel: "Entertainment Weekly",
-      views: "1.5M",
-      likes: "87K",
-      comments: "15.2K",
-      duration: "22:10",
-      publishedAt: "8 hours ago",
-      category: "Entertainment",
-      thumbnail: "https://via.placeholder.com/300x168/ff0000/ffffff?text=Celebrity",
-      growth: "+42%"
-    },
-    {
-      rank: 4,
-      title: "Life-Changing Productivity Hacks Everyone Should Know",
-      channel: "ProductivityGuru",
-      views: "1.2M",
-      likes: "73K",
-      comments: "4.5K",
-      duration: "18:30",
-      publishedAt: "12 hours ago",
-      category: "Education",
-      thumbnail: "https://via.placeholder.com/300x168/ff0000/ffffff?text=Productivity",
-      growth: "+28%"
-    },
-    {
-      rank: 5,
-      title: "Incredible Science Discovery You Won't Believe",
-      channel: "ScienceFacts",
-      views: "980K",
-      likes: "62K",
-      comments: "3.8K",
-      duration: "14:55",
-      publishedAt: "1 day ago",
-      category: "Science & Technology",
-      thumbnail: "https://via.placeholder.com/300x168/ff0000/ffffff?text=Science",
-      growth: "+31%"
+  useEffect(() => {
+    loadTrendingVideos();
+  }, [selectedCountry, selectedCategory]);
+
+  const loadTrendingVideos = async () => {
+    try {
+      setLoading(true);
+      console.log('Loading trending videos...', { country: selectedCountry, category: selectedCategory });
+      
+      // Check if API key is configured
+      if (!import.meta.env.VITE_YOUTUBE_API_KEY) {
+        throw new Error('YouTube API key not configured');
+      }
+      
+      const videos = await youtubeService.getTrendingVideos(
+        selectedCountry,
+        selectedCategory === "0" ? undefined : selectedCategory
+      );
+      
+      console.log('Trending videos loaded:', videos.length);
+      setTrendingVideos(videos);
+      
+      if (videos.length === 0) {
+        toast({
+          title: "No Videos Found",
+          description: "No trending videos found for the selected filters.",
+        });
+      }
+    } catch (error) {
+      console.error('Error loading trending videos:', error);
+      
+      let errorMessage = "Failed to load trending videos. Please try again.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const handleRefresh = async () => {
+    try {
+      setRefreshing(true);
+      await loadTrendingVideos();
+      toast({
+        title: "Success",
+        description: "Trending videos refreshed successfully.",
+      });
+    } catch (error) {
+      console.error('Error refreshing videos:', error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh trending videos.",
+        variant: "destructive",
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const formatNumber = (num: string) => {
+    const number = parseInt(num);
+    if (number >= 1000000) {
+      return (number / 1000000).toFixed(1) + 'M';
+    } else if (number >= 1000) {
+      return (number / 1000).toFixed(1) + 'K';
+    }
+    return number.toString();
+  };
+
+  const formatDuration = (duration: string) => {
+    // Convert ISO 8601 duration to readable format
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return duration;
+    
+    const hours = parseInt(match[1] || '0');
+    const minutes = parseInt(match[2] || '0');
+    const seconds = parseInt(match[3] || '0');
+    
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const formatTimeAgo = (publishedAt: string) => {
+    const now = new Date();
+    const published = new Date(publishedAt);
+    const diffInHours = Math.floor((now.getTime() - published.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays} days ago`;
+    
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    if (diffInWeeks < 4) return `${diffInWeeks} weeks ago`;
+    
+    const diffInMonths = Math.floor(diffInDays / 30);
+    return `${diffInMonths} months ago`;
+  };
+
+  const filteredVideos = trendingVideos.filter(video =>
+    video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    video.channelTitle.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getCategoryName = (categoryId: string) => {
+    return categories.find(cat => cat.id === categoryId)?.name || 'Unknown';
+  };
+
+  if (loading && trendingVideos.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="container mx-auto p-6">
+          <div className="flex items-center justify-center min-h-96">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      {/* Content Header */}
-      <div className="bg-background/80 backdrop-blur-md border-b">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold flex items-center">
-                <TrendingUp className="h-8 w-8 mr-3 text-primary" />
-                Trending Analysis
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                Real-time trending videos across 113 countries
-              </p>
-            </div>
-            <Button variant="hero">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh Data
-            </Button>
+      <div className="container mx-auto p-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <TrendingUp className="h-8 w-8" />
+              Trending Videos
+            </h1>
+            <p className="text-muted-foreground">
+              Discover what's trending on YouTube right now
+            </p>
           </div>
+          <Button onClick={handleRefresh} variant="outline" disabled={refreshing}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
         </div>
-      </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters */}
-        <div className="mb-8">
-          <Card className="p-6 bg-background/60 backdrop-blur-sm">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row gap-4">
               {/* Country Selection */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Country</label>
-                <div className="relative">
-                  <Globe className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <select 
-                    className="w-full pl-10 pr-4 py-2 border border-input rounded-md bg-background focus:ring-2 focus:ring-primary focus:border-transparent"
-                    value={selectedCountry}
-                    onChange={(e) => setSelectedCountry(e.target.value)}
-                  >
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Country</label>
+                <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
                     {countries.map((country) => (
-                      <option key={country.code} value={country.name}>
-                        {country.flag} {country.name}
-                      </option>
+                      <SelectItem key={country.code} value={country.code}>
+                        <span className="flex items-center gap-2">
+                          {country.flag} {country.name}
+                        </span>
+                      </SelectItem>
                     ))}
-                  </select>
-                </div>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Category Selection */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Category</label>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Search */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Search Videos</label>
+              <div className="space-y-2 flex-1">
+                <label className="text-sm font-medium">Search</label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    type="text"
                     placeholder="Search trending videos..."
-                    className="pl-10"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
                   />
-                </div>
-              </div>
-
-              {/* Category Filter */}
-              <div>
-                <label className="text-sm font-medium mb-2 block">Category</label>
-                <div className="relative">
-                  <Filter className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <select className="w-full pl-10 pr-4 py-2 border border-input rounded-md bg-background focus:ring-2 focus:ring-primary focus:border-transparent">
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
                 </div>
               </div>
             </div>
-          </Card>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Country Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6 bg-background/60 backdrop-blur-sm text-center">
-            <div className="text-2xl font-bold text-primary">🇺🇸</div>
-            <div className="text-2xl font-bold mt-2">2.1M</div>
-            <div className="text-sm text-muted-foreground">Total Views</div>
-          </Card>
-          <Card className="p-6 bg-background/60 backdrop-blur-sm text-center">
-            <div className="text-2xl font-bold text-success">↗️</div>
-            <div className="text-2xl font-bold mt-2 text-success">+34%</div>
-            <div className="text-sm text-muted-foreground">Growth Rate</div>
-          </Card>
-          <Card className="p-6 bg-background/60 backdrop-blur-sm text-center">
-            <div className="text-2xl font-bold text-info">🎥</div>
-            <div className="text-2xl font-bold mt-2">47</div>
-            <div className="text-sm text-muted-foreground">Trending Videos</div>
-          </Card>
-          <Card className="p-6 bg-background/60 backdrop-blur-sm text-center">
-            <div className="text-2xl font-bold text-warning">⏱️</div>
-            <div className="text-2xl font-bold mt-2">14:32</div>
-            <div className="text-sm text-muted-foreground">Avg Duration</div>
-          </Card>
-        </div>
-
-        {/* Trending Videos List */}
-        <Card className="p-6 bg-background/60 backdrop-blur-sm">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold">Trending Videos in {selectedCountry}</h2>
-            <Badge variant="secondary" className="flex items-center">
-              <Clock className="h-3 w-3 mr-1" />
-              Updated 5 min ago
-            </Badge>
-          </div>
-          
-          <div className="space-y-6">
-            {trendingVideos.map((video) => (
-              <div key={video.rank} className="flex items-start space-x-4 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                {/* Rank */}
-                <div className="flex-shrink-0 w-8 text-center">
-                  <div className="text-lg font-bold text-primary">#{video.rank}</div>
+        {/* Debug Panel - Development Only */}
+        {process.env.NODE_ENV === 'development' && (
+          <>
+            <APIKeyDebugger />
+            <Card className="mb-6 border-orange-200 bg-orange-50">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-sm text-orange-800">Debug Info</h4>
+                  <Badge variant="outline" className="text-xs">
+                    {import.meta.env.VITE_YOUTUBE_API_KEY ? 'API Key Set' : 'API Key Missing'}
+                  </Badge>
                 </div>
-
-                {/* Thumbnail */}
-                <div className="flex-shrink-0">
-                  <img 
-                    src={video.thumbnail}
-                    alt={video.title}
-                    className="w-40 h-24 rounded object-cover"
-                  />
-                  <div className="text-xs text-center mt-1 text-muted-foreground">
-                    {video.duration}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-orange-700">
+                  <div>
+                    <strong>Total Videos:</strong> {trendingVideos.length}
+                  </div>
+                  <div>
+                    <strong>Filtered:</strong> {filteredVideos.length}
+                  </div>
+                  <div>
+                    <strong>Loading:</strong> {loading ? 'Yes' : 'No'}
                   </div>
                 </div>
+                <Button 
+                  onClick={loadTrendingVideos} 
+                  size="sm" 
+                  variant="outline" 
+                  className="mt-2"
+                  disabled={loading}
+                >
+                  Test API Call
+                </Button>
+              </CardContent>
+            </Card>
+          </>
+        )}
 
-                {/* Video Info */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-lg mb-1 line-clamp-2">{video.title}</h3>
-                  <p className="text-muted-foreground mb-2">{video.channel}</p>
-                  <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-2">
-                    <span className="flex items-center">
-                      <Eye className="h-3 w-3 mr-1" />
-                      {video.views}
-                    </span>
-                    <span className="flex items-center">
-                      <ThumbsUp className="h-3 w-3 mr-1" />
-                      {video.likes}
-                    </span>
-                    <span className="flex items-center">
-                      <MessageSquare className="h-3 w-3 mr-1" />
-                      {video.comments}
-                    </span>
-                    <span>{video.publishedAt}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline">{video.category}</Badge>
-                    <Badge variant="secondary" className="text-success">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      {video.growth}
-                    </Badge>
-                  </div>
-                </div>
+        {/* Video List */}
+        {filteredVideos.length === 0 && !loading ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Youtube className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No Videos Found</h3>
+              <p className="text-muted-foreground">
+                No trending videos match your current filters
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {filteredVideos.map((video, index) => (
+              <Card key={video.id} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex gap-4">
+                    {/* Rank */}
+                    <div className="flex items-center">
+                      <span className="text-2xl font-bold text-muted-foreground w-8">
+                        #{index + 1}
+                      </span>
+                    </div>
 
-                {/* Actions */}
-                <div className="flex-shrink-0">
-                  <Button variant="outline" size="sm">
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+                    {/* Thumbnail */}
+                    <div className="relative">
+                      <img
+                        src={video.thumbnails.high.url}
+                        alt={video.title}
+                        className="w-48 h-28 object-cover rounded-lg"
+                      />
+                      <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                        {formatDuration(video.duration)}
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-start justify-between">
+                        <h3 className="font-semibold text-lg line-clamp-2 pr-4">
+                          {video.title}
+                        </h3>
+                        <Badge variant="secondary">
+                          {getCategoryName(video.categoryId)}
+                        </Badge>
+                      </div>
+                      
+                      <p className="text-muted-foreground font-medium">
+                        {video.channelTitle}
+                      </p>
+
+                      <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Eye className="h-4 w-4" />
+                          {formatNumber(video.viewCount)} views
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <ThumbsUp className="h-4 w-4" />
+                          {formatNumber(video.likeCount)}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <MessageSquare className="h-4 w-4" />
+                          {formatNumber(video.commentCount)}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          {formatTimeAgo(video.publishedAt)}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(`https://youtube.com/watch?v=${video.id}`, '_blank')}
+                        >
+                          <PlayCircle className="h-4 w-4 mr-2" />
+                          Watch
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.open(`https://youtube.com/watch?v=${video.id}`, '_blank')}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Open in YouTube
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
-
-          <div className="flex justify-center mt-8">
-            <Button variant="outline">
-              Load More Videos
-            </Button>
-          </div>
-        </Card>
+        )}
       </div>
     </div>
   );

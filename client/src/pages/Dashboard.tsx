@@ -1,246 +1,366 @@
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   TrendingUp, 
   Users, 
   PlayCircle, 
-  Eye, 
-  ThumbsUp, 
-  MessageSquare,
-  ArrowUpRight,
-  ArrowDownRight,
-  Globe,
-  Clock,
-  Star
-} from "lucide-react";
+  Clock, 
+  Calendar,
+  Settings,
+  RefreshCw,
+  BarChart3,
+  Target,
+  Lightbulb,
+} from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { ChannelConnectionsList } from '@/components/ui/channel-connections-list';
+import { YouTubeConnectionTest } from '@/components/ui/youtube-connection-test';
+import { AuthDebugTest } from '@/components/ui/auth-debug-test';
+import { YouTubeAPITest } from '@/components/ui/youtube-api-test';
+import Header from '@/components/layout/Header';
+import { useDashboard } from '@/contexts/DashboardContext';
 
 const Dashboard = () => {
-  // Mock data for demonstration
-  const stats = [
-    {
-      title: "Total Views",
-      value: "2.4M",
-      change: "+12.5%",
-      trend: "up",
-      icon: Eye,
-      color: "text-primary"
-    },
-    {
-      title: "Subscribers",
-      value: "45.2K",
-      change: "+8.2%",
-      trend: "up",
-      icon: Users,
-      color: "text-success"
-    },
-    {
-      title: "Watch Time",
-      value: "156K hrs",
-      change: "+15.3%",
-      trend: "up",
-      icon: Clock,
-      color: "text-info"
-    },
-    {
-      title: "Engagement",
-      value: "94.7%",
-      change: "-2.1%",
-      trend: "down",
-      icon: ThumbsUp,
-      color: "text-warning"
-    }
-  ];
+  const { user, loading: authLoading, signOut } = useAuth();
+  const [selectedTab, setSelectedTab] = useState('overview');
+  
+  // Use dashboard context for all data management
+  const {
+    analyticsData,
+    predictionsData,
+    loading,
+    hasConnections,
+    channelConnections,
+    connectionsLoading,
+    connecting,
+    refreshData,
+    connectChannel,
+    disconnectChannel: handleDisconnectChannel,
+    refreshConnections
+  } = useDashboard();
 
-  const topVideos = [
-    {
-      title: "YouTube Growth Secrets That Actually Work in 2024",
-      views: "458K",
-      likes: "12.3K",
-      comments: "842",
-      publishedAt: "2 days ago",
-      thumbnail: "https://via.placeholder.com/120x68/ff0000/ffffff?text=Video+1"
-    },
-    {
-      title: "The Ultimate Guide to YouTube Analytics",
-      views: "324K",
-      likes: "8.9K",
-      comments: "567",
-      publishedAt: "5 days ago",
-      thumbnail: "https://via.placeholder.com/120x68/ff0000/ffffff?text=Video+2"
-    },
-    {
-      title: "How I Gained 100K Subscribers in 30 Days",
-      views: "712K",
-      likes: "19.2K",
-      comments: "1.2K",
-      publishedAt: "1 week ago",
-      thumbnail: "https://via.placeholder.com/120x68/ff0000/ffffff?text=Video+3"
+  const handleRefreshData = async () => {
+    if (!hasConnections) {
+      toast({
+        title: "No connections",
+        description: "Connect a YouTube channel first to refresh data.",
+        variant: "destructive",
+      });
+      return;
     }
-  ];
+    
+    await refreshData();
+  };
 
-  const trendingCountries = [
-    { country: "United States", flag: "🇺🇸", growth: "+23%", rank: 1 },
-    { country: "United Kingdom", flag: "🇬🇧", growth: "+18%", rank: 2 },
-    { country: "Canada", flag: "🇨🇦", growth: "+15%", rank: 3 },
-    { country: "Australia", flag: "🇦🇺", growth: "+12%", rank: 4 },
-    { country: "Germany", flag: "🇩🇪", growth: "+9%", rank: 5 }
-  ];
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-card">
-      {/* Header */}
-      <div className="bg-background/80 backdrop-blur-md border-b">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Dashboard</h1>
-              <p className="text-muted-foreground mt-1">
-                Welcome back! Here's what's happening with your channel.
-              </p>
-            </div>
-            <Button variant="hero">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              View Full Analytics
-            </Button>
-          </div>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="container mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome back, {user?.user_metadata?.display_name || user?.email}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={handleRefreshData} variant="outline" disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Button onClick={() => setSelectedTab('settings')} variant="outline">
+            <Settings className="h-4 w-4 mr-2" />
+            Settings
+          </Button>
+          <Button onClick={signOut} variant="outline">
+            Sign Out
+          </Button>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <Card key={index} className="p-6 bg-background/60 backdrop-blur-sm">
+      {/* Channel Connections Status */}
+      <ChannelConnectionsList
+        connections={channelConnections}
+        onConnect={connectChannel}
+        onDisconnect={handleDisconnectChannel}
+        onRefresh={refreshConnections}
+        loading={connectionsLoading || connecting}
+        showAddButton={true}
+      />
+
+      {/* Main Dashboard Content */}
+      <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="predictions">Predictions</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        </TabsList>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="space-y-6">
+          {analyticsData ? (
+            <>
+              {/* Key Metrics */}
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Subscribers</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {analyticsData.channel_stats.subscriber_count.toLocaleString()}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+                    <PlayCircle className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {analyticsData.channel_stats.total_views.toLocaleString()}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Videos</CardTitle>
+                    <PlayCircle className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {analyticsData.channel_stats.total_videos}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Avg Views/Video</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {analyticsData.channel_stats.average_views_per_video.toLocaleString()}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Recent Videos */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Videos Performance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {analyticsData.recent_videos.map((video) => (
+                      <div key={video.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1">
+                          <h4 className="font-medium">{video.title}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Published: {new Date(video.published_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex gap-4 text-sm">
+                          <span>{video.views.toLocaleString()} views</span>
+                          <span>{video.likes.toLocaleString()} likes</span>
+                          <span>{video.comments} comments</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <BarChart3 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">Connect a channel to see your analytics</p>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-6">
+          {analyticsData ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Performance Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="text-center p-4 border rounded-lg">
+                    <Clock className="mx-auto h-8 w-8 text-primary mb-2" />
+                    <h4 className="font-medium">Best Time to Post</h4>
+                    <p className="text-2xl font-bold text-primary">
+                      {analyticsData.performance_metrics.best_performing_time}
+                    </p>
+                  </div>
+                  <div className="text-center p-4 border rounded-lg">
+                    <Calendar className="mx-auto h-8 w-8 text-primary mb-2" />
+                    <h4 className="font-medium">Best Day to Post</h4>
+                    <p className="text-2xl font-bold text-primary">
+                      {analyticsData.performance_metrics.best_performing_day}
+                    </p>
+                  </div>
+                  <div className="text-center p-4 border rounded-lg">
+                    <TrendingUp className="mx-auto h-8 w-8 text-primary mb-2" />
+                    <h4 className="font-medium">Engagement Rate</h4>
+                    <p className="text-2xl font-bold text-primary">
+                      {(analyticsData.performance_metrics.average_engagement_rate * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="text-center py-12">
+              <BarChart3 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-center text-muted-foreground">Connect a channel to see detailed analytics</p>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Predictions Tab */}
+        <TabsContent value="predictions" className="space-y-6">
+          {predictionsData ? (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    Optimal Publishing Times
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {predictionsData.optimal_publish_times.map((prediction, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">{prediction.day} at {prediction.time}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Confidence: {(prediction.confidence * 100).toFixed(0)}%
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-semibold text-primary">
+                            {prediction.predicted_views.toLocaleString()} views
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5" />
+                    Content Recommendations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {predictionsData.content_recommendations.map((rec, index) => (
+                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                          <h4 className="font-medium">{rec.category}</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Duration: {rec.suggested_duration}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-semibold text-primary">
+                            {(rec.predicted_engagement * 100).toFixed(1)}% engagement
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <Target className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-center text-muted-foreground">Connect a channel to get AI predictions</p>
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Settings Tab */}
+        <TabsContent value="settings" className="space-y-6">
+          {/* Auth Debug Component */}
+          <AuthDebugTest />
+          
+          {/* YouTube API Test Component */}
+          <YouTubeAPITest />
+          
+          {/* YouTube Connection Debug Component */}
+          <YouTubeConnectionTest />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Dashboard Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                  <p className="text-2xl font-bold mt-1">{stat.value}</p>
-                  <div className="flex items-center mt-2">
-                    {stat.trend === "up" ? (
-                      <ArrowUpRight className="h-4 w-4 text-success mr-1" />
-                    ) : (
-                      <ArrowDownRight className="h-4 w-4 text-destructive mr-1" />
-                    )}
-                    <span className={`text-sm font-medium ${
-                      stat.trend === "up" ? "text-success" : "text-destructive"
-                    }`}>
-                      {stat.change}
-                    </span>
-                  </div>
+                  <h4 className="font-medium">Auto-refresh data</h4>
+                  <p className="text-sm text-muted-foreground">Automatically refresh dashboard data every 5 minutes</p>
                 </div>
-                <div className="p-3 rounded-lg bg-gradient-primary/10">
-                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                <Button variant="outline" size="sm">Configure</Button>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium">Export data</h4>
+                  <p className="text-sm text-muted-foreground">Download your analytics data as CSV</p>
                 </div>
+                <Button variant="outline" size="sm">Export</Button>
               </div>
-            </Card>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Top Performing Videos */}
-          <div className="lg:col-span-2">
-            <Card className="p-6 bg-background/60 backdrop-blur-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold">Top Performing Videos</h2>
-                <Badge variant="secondary">
-                  <PlayCircle className="h-3 w-3 mr-1" />
-                  Last 30 days
-                </Badge>
-              </div>
-              <div className="space-y-4">
-                {topVideos.map((video, index) => (
-                  <div key={index} className="flex items-center space-x-4 p-4 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors">
-                    <img 
-                      src={video.thumbnail}
-                      alt={video.title}
-                      className="w-20 h-11 rounded object-cover"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">{video.title}</h3>
-                      <div className="flex items-center space-x-4 mt-1 text-sm text-muted-foreground">
-                        <span className="flex items-center">
-                          <Eye className="h-3 w-3 mr-1" />
-                          {video.views}
-                        </span>
-                        <span className="flex items-center">
-                          <ThumbsUp className="h-3 w-3 mr-1" />
-                          {video.likes}
-                        </span>
-                        <span className="flex items-center">
-                          <MessageSquare className="h-3 w-3 mr-1" />
-                          {video.comments}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium">{video.publishedAt}</div>
-                      <Badge variant="outline" className="mt-1">
-                        <Star className="h-3 w-3 mr-1" />
-                        Trending
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-
-          {/* Trending Countries */}
-          <div>
-            <Card className="p-6 bg-background/60 backdrop-blur-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold">Trending Countries</h2>
-                <Globe className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div className="space-y-4">
-                {trendingCountries.map((country, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{country.flag}</span>
-                      <div>
-                        <div className="font-medium">{country.country}</div>
-                        <div className="text-sm text-muted-foreground">Rank #{country.rank}</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium text-success">{country.growth}</div>
-                      <div className="text-xs text-muted-foreground">growth</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Button variant="outline" className="w-full mt-4">
-                View All Countries
-              </Button>
-            </Card>
-          </div>
-        </div>
-
-        {/* AI Recommendations */}
-        <Card className="mt-8 p-6 bg-gradient-primary/5 border-primary/20 backdrop-blur-sm">
-          <div className="flex items-start space-x-4">
-            <div className="p-3 rounded-lg bg-gradient-primary">
-              <TrendingUp className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold mb-2">AI Optimization Recommendations</h3>
-              <p className="text-muted-foreground mb-4">
-                Based on your channel's performance and current trends, here are our top recommendations:
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-background/60 rounded-lg">
-                  <h4 className="font-medium mb-1">Optimal Upload Time</h4>
-                  <p className="text-sm text-muted-foreground">Tuesday at 2:00 PM EST for maximum engagement</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium">Clear cache</h4>
+                  <p className="text-sm text-muted-foreground">Clear all cached analytics data</p>
                 </div>
-                <div className="p-4 bg-background/60 rounded-lg">
-                  <h4 className="font-medium mb-1">Trending Topic</h4>
-                  <p className="text-sm text-muted-foreground">"AI productivity tools" is trending in your niche</p>
-                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    // Clear cache and refresh data
+                    handleRefreshData();
+                    toast({ title: "Cache cleared", description: "All cached data has been cleared and refreshed." });
+                  }}
+                >
+                  Clear
+                </Button>
               </div>
-            </div>
-          </div>
-        </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
       </div>
     </div>
   );
