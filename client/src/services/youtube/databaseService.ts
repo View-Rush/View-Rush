@@ -72,6 +72,7 @@ export class YouTubeDatabaseService {
         .order('created_at', { ascending: false })
         .limit(1);
 
+        
       logger.info('Connections fetched', "" + { count: connections?.length || 0 });
 
       if (error) {
@@ -253,14 +254,16 @@ export class YouTubeDatabaseService {
         throw errorHandler.createAuthError('User not authenticated');
       }
 
+      console.log("About database disconnect for connection:", connectionId);
       const { error } = await supabase
         .from('channel_connections')
         .update({ 
           is_active: false,
-          sync_status: 'disconnected'
         })
         .eq('id', connectionId)
         .eq('user_id', user.id);
+
+
 
       if (error) {
         throw errorHandler.createDatabaseError('Failed to disconnect connection', error);
@@ -330,6 +333,24 @@ export class YouTubeDatabaseService {
     }
   }
 
+  async updateConnectionStatus(connectionId: string, isActive: boolean): Promise<void> {
+    logger.info('YouTubeDB', 'Updating connection status', { connectionId, isActive });
+
+    try {
+      const { error } = await supabase
+        .from('channel_connections')
+        .update({ is_active: isActive })
+        .eq('id', connectionId);
+
+      if (error) {
+        throw errorHandler.createDatabaseError('Failed to update connection status', error);
+      }
+
+      logger.info('YouTubeDB', 'Connection status updated successfully', { connectionId, isActive });
+    } catch (error) {
+      throw errorHandler.handleError(error, 'YouTubeDB', false);
+    }
+  }
 
 //  Deactivate existing YouTube connections for a user
   private async deactivateExistingConnections(userId: string): Promise<void> {

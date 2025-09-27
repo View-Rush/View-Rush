@@ -39,7 +39,7 @@ const Dashboard = () => {
     refreshData,
     connectChannel,
     disconnectChannel: handleDisconnectChannel,
-    refreshConnections
+    refreshConnections,
   } = useDashboard();
 
   const handleRefreshData = async () => {

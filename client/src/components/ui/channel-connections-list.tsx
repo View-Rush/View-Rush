@@ -51,8 +51,8 @@ export function ChannelConnectionsList({
               <ChannelConnectionCard
                 key={connection.id}
                 connection={connection}
-                onDisconnect={onDisconnect}
                 onRefresh={onRefresh}
+                onDisconnect={onDisconnect}
                 compact={compact}
               />
             ))}

@@ -21,17 +21,17 @@ export function useChannelConnections() {
 
   const loadConnections = async (forceRefresh = false) => {
     try {
-      console.log('🔄 Loading connections...');
-      console.log('🔄 Auth state - User:', user?.email, 'Auth loading:', authLoading);
+      console.log('Loading connections...');
+      console.log('Auth state - User:', user?.email, 'Auth loading:', authLoading);
       
       // Don't proceed if auth is still loading or user is not authenticated
       if (authLoading) {
-        console.log('⏳ Auth still loading, skipping connection load');
+        console.log('Auth still loading, skipping connection load');
         return;
       }
       
       if (!user) {
-        console.log('❌ No authenticated user, clearing connections');
+        console.log('No authenticated user, clearing connections');
         setConnections([]);
         setLoading(false);
         return;
@@ -40,14 +40,14 @@ export function useChannelConnections() {
       // Prevent redundant calls within 3 seconds unless forced
       const now = Date.now();
       if (!forceRefresh && (now - lastLoadTime) < 3000) {
-        console.log('⏭️ Skipping connection load, recent data available');
+        console.log('Skipping connection load, recent data available');
         setLoading(false);
         return;
       }
       
       // Check if connection process is in progress and block if so
       if (connectionStateManager.isConnecting()) {
-        console.log('🔒 loadConnections() blocked - connection in progress');
+        console.log('loadConnections() blocked - connection in progress');
         setLoading(false);
         return;
       }
@@ -68,7 +68,7 @@ export function useChannelConnections() {
           timeoutPromise
         ]);
         
-        console.log('✅ Connections loaded:', userConnections.length);
+        console.log('Connections loaded:', userConnections.length);
         setConnections(userConnections);
         setLastLoadTime(Date.now()); // Update cache timestamp
       } catch (timeoutError) {
@@ -92,38 +92,36 @@ export function useChannelConnections() {
         variant: "destructive",
       });
     } finally {
-      console.log('🔄 Setting loading to false');
+      console.log('Setting loading to false');
       setLoading(false);
     }
   };
 
   const connectChannel = async () => {
     try {
-      console.log('🔗 Connect channel button clicked');
+      console.log('Connect channel button clicked');
       setConnecting(true);
       
-      // Add a timeout to reset connecting state after 5 seconds
-      // This handles cases where the OAuth redirect doesn't complete properly
       const connectionTimeout = setTimeout(() => {
-        console.log('🔗 Connection timeout reached, resetting connecting state');
+        console.log('Connection timeout reached, resetting connecting state');
         setConnecting(false);
       }, 5000);
-      
-      console.log('🔗 Calling youtubeService.connectAccount()');
+
+      console.log('Calling youtubeService.connectAccount()');
       await youtubeService.connectAccount();
-      console.log('🔗 youtubeService.connectAccount() completed');
+      console.log('youtubeService.connectAccount() completed');
       
-      // Clear the timeout if we reach this point (though we likely won't due to redirect)
+      // Clear the timeout if we reach this point successfully
       clearTimeout(connectionTimeout);
     } catch (error) {
-      console.error('🔥 YouTube connection error:', error);
+      console.error('YouTube connection error:', error);
       toast({
         title: "Connection Failed",
         description: "Failed to connect YouTube channel. Please try again.",
         variant: "destructive",
       });
     } finally {
-      console.log('🔗 Setting connecting to false');
+      console.log('Setting connecting to false');
       setConnecting(false);
     }
   };
@@ -181,7 +179,6 @@ export function useChannelConnections() {
     connectChannel,
     disconnectChannel,
     refreshConnection,
-    // Computed properties for easier decision making
     hasConnections,
     hasActiveConnections,
     activeConnectionsCount

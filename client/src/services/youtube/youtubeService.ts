@@ -71,7 +71,10 @@ export class YouTubeService {
     logger.info('YouTubeService', 'Checking connection status');
     
     try {
-      return await youtubeDatabaseService.getConnectionStatus();
+      const status = await youtubeDatabaseService.getConnectionStatus();
+      console.log('Connection status:', status);
+      return status;
+
     } catch (error) {
       throw errorHandler.handleError(error, 'YouTubeService');
     }
@@ -110,9 +113,33 @@ export class YouTubeService {
       logger.debug('YouTubeService', 'Fetching channel information');
       const channelInfo = await youtubeApiClient.getChannelInfo(tokenResponse.access_token);
 
-      // Save connection to database
-      logger.debug('YouTubeService', 'Saving connection to database');
-      await youtubeDatabaseService.saveConnection(tokenResponse, channelInfo);
+      // Check if the channel is already connected
+      logger.debug('YouTubeService', 'Checking if channel is already connected');
+      const existingConnections = await youtubeDatabaseService.getUserConnections();
+      const existingConnection = existingConnections.find(
+        connection => connection.channel_id === channelInfo.id
+      );
+
+      if (existingConnection) {
+        logger.debug('YouTubeService', 'Channel already connected, activating it');
+        await youtubeDatabaseService.updateConnectionStatus(existingConnection.id, true);
+
+        // Deactivate other connections
+        for (const connection of existingConnections) {
+          if (connection.id !== existingConnection.id) {
+        await youtubeDatabaseService.updateConnectionStatus(connection.id, false);
+          }
+        }
+      } else {
+        // Save new connection to database
+        logger.debug('YouTubeService', 'Saving new connection to database');
+        await youtubeDatabaseService.saveConnection(tokenResponse, channelInfo);
+
+        // Deactivate other connections
+        for (const connection of existingConnections) {
+          await youtubeDatabaseService.updateConnectionStatus(connection.id, false);
+        }
+      }
 
       // Sync initial analytics (non-blocking)
       this.syncChannelAnalytics().catch(error => {
@@ -128,8 +155,6 @@ export class YouTubeService {
         channelId: channelInfo.id,
         channelTitle: channelInfo.title
       });
-      // Reload the page to reflect the new connection
-      window.location.reload();
       return true;
     } catch (error) {
       logger.error('YouTubeService', 'YouTube connection failed', { error });
