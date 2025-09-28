@@ -7,11 +7,8 @@ on:
     branches: [ "main", "dev", "client"]
 
 jobs:
-  test-client:
+  build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: client
 
     strategy:
       matrix:
@@ -25,12 +22,16 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+        cache-dependency-path: 'client/package-lock.json'
     
     - name: Install dependencies
-      run: npm i
+      run: npm ci
+      working-directory: client
     
     - name: Build
       run: npm run build
+      working-directory: client
     
     - name: Test
       run: npm test
+      working-directory: client
