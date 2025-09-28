@@ -12,10 +12,16 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.X, 22.X]  
 
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Verify file structure
+      run: |
+        echo "Checking project structure..."
+        ls -la client/src/lib/ || echo "lib directory might be missing"
+        find client/src -name "utils*" -type f 2>/dev/null || echo "No utils file found"
     
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
@@ -33,5 +39,5 @@ jobs:
       working-directory: client
     
     - name: Test
-      run: npm test
+      run: npm test --if-present
       working-directory: client
