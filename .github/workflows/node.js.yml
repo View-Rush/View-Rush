@@ -39,5 +39,5 @@ jobs:
       working-directory: client
     
     - name: Test
-      run: npm test
+      run: npm test --if-present
       working-directory: client
