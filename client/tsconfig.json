@@ -19,8 +19,9 @@
     
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@testing/*": ["testing/*"]
     }
   },
-  "include": ["src/**/*", "vite.config.ts", "Junk/youtubeService.ts", "Junk/storageService.ts", "Junk/secureTokenService.v2.ts"]
+  "include": ["src/**/*", "testing/**/*", "vite.config.ts", "Junk/youtubeService.ts", "Junk/storageService.ts", "Junk/secureTokenService.v2.ts"]
 }
