@@ -13,18 +13,9 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run",
-    "test:coverage": "vitest --coverage",
-    "test:unit": "vitest testing/unit",
-    "test:integration": "vitest testing/integration",
-    "test:e2e": "vitest testing/e2e",
-    "test:components": "vitest testing/unit/components",
-    "test:hooks": "vitest testing/unit/hooks",
-    "test:services": "vitest testing/unit/services",
-    "test:utils": "vitest testing/unit/utils",
-    "test:all": "vitest run && echo 'All tests completed!'",
-    "test-db": "tsx test-youtube-db.ts",
-    "test-db-detailed": "tsx test-database-insert.ts"
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

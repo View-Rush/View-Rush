@@ -40,7 +40,9 @@ describe('Header Component', () => {
 
       const logo = screen.getByAltText('View Rush Logo');
       expect(logo).toBeInTheDocument();
-    });    it('should render navigation menu with public links', () => {
+    }); 
+
+    it('should render navigation menu with public links', () => {
       render(<Header />);
 
       // When not authenticated, should show Sign In and Get Started
@@ -53,7 +55,9 @@ describe('Header Component', () => {
 
       expect(screen.getByRole('link', { name: /sign in/i })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: /get started/i })).toBeInTheDocument();
-    });    it('should not render user menu when not authenticated', () => {
+    });    
+    
+    it('should not render user menu when not authenticated', () => {
       render(<Header />);
       
       expect(screen.queryByTestId('user-menu')).not.toBeInTheDocument();
@@ -102,10 +106,11 @@ describe('Header Component', () => {
       expect(screen.getByText('Dashboard')).toBeInTheDocument();
       expect(screen.getByText('Analytics')).toBeInTheDocument();
       expect(screen.getByText('Trending')).toBeInTheDocument();
-    });    it('should render user avatar when available', () => {
+    });    
+    
+    it('should render user avatar when available', () => {
       render(<Header />);
 
-      // The actual component shows user initials in a span, not avatar image
       const userButton = screen.getByRole('button', { name: /menu/i });
       expect(userButton).toBeInTheDocument();
     });

@@ -19,18 +19,24 @@ export default defineConfig(({}) => ({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./testing/utils/setup.ts"],
-    include: ["testing/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
-    exclude: ["node_modules/", "dist/", "build/"],
+    include: [
+      "src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}",
+      "testing/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"
+    ],
+    exclude: ["node_modules/", "dist/", "build/", "supabase/"],
     coverage: {
       reporter: ["text", "json", "html"],
       exclude: [
         "node_modules/",
-        "testing/",
+        "testing/utils/",
+        "testing/fixtures/",
         "**/*.d.ts",
         "**/*.config.*",
         "**/coverage/**",
         "dist/",
         "build/",
+        "supabase/",
+        "Junk/",
       ],
       reportsDirectory: "./testing/coverage",
     },
