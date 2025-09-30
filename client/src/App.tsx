@@ -5,14 +5,16 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { DashboardProvider } from "@/contexts/DashboardContext";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
-import DashboardNew from "./pages/DashboardNew";
 import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Trending from "./pages/Trending";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
+import YouTubePopupCallback from "./pages/YouTubePopupCallback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,11 +29,18 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route 
+              path="/auth/youtube/callback" 
+              element={<YouTubePopupCallback />} 
+            />
             <Route 
               path="/dashboard" 
               element={
                 <ProtectedRoute>
-                  <DashboardNew />
+                  <DashboardProvider>
+                    <Dashboard />
+                  </DashboardProvider>
                 </ProtectedRoute>
               } 
             />
@@ -67,16 +76,6 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
-            {/* Legacy dashboard route for backward compatibility */}
-            <Route 
-              path="/dashboard-old" 
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

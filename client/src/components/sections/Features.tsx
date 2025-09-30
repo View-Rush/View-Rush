@@ -202,11 +202,11 @@ export const Features = () => {
                     <PlayCircle className="h-10 w-10 text-primary mx-auto mb-3 group-hover/stat:scale-110 transition-transform duration-300" />
                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-success rounded-full opacity-80 group-hover/stat:opacity-100 transition-opacity duration-300 group-hover/stat:scale-125"></div>
                   </div>
-                  <div className="font-bold text-xl mb-1 group-hover/stat:text-primary transition-colors duration-300">1M+</div>
+                  <div className="font-bold text-xl mb-1 group-hover/stat:text-primary transition-colors duration-300">100K+</div>
                   <div className="text-sm text-muted-foreground">Videos/Hour</div>
                   <div className="text-xs text-primary mt-1 opacity-0 group-hover/stat:opacity-100 transition-opacity duration-300">
                     <TrendingUp className="h-3 w-3 inline mr-1" />
-                    +15% this week
+                    +5% this week
                   </div>
                 </div>
                 

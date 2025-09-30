@@ -18,7 +18,7 @@ export const CTA = () => {
           <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-6 py-3 mb-8">
             <Sparkles className="h-5 w-5 text-white" />
             <span className="text-white font-medium">
-              Join 50,000+ YouTube Creators
+              Join 2,000+ YouTube Creators
             </span>
           </div>
 
@@ -58,7 +58,7 @@ export const CTA = () => {
           {/* Trust indicators */}
           <div className="text-white/80 space-y-2">
             <p className="text-sm">✓ 7-day free trial • ✓ No setup fees • ✓ Cancel anytime</p>
-            <p className="text-xs">Trusted by creators worldwide</p>
+            <p className="text-xs">Trusted by creators islandwide</p>
           </div>
         </div>
       </div>

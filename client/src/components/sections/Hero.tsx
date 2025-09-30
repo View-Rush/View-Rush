@@ -37,7 +37,7 @@ export const Hero = () => {
           {/* Subheading */}
           <p className="text-lg sm:text-xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed">
             Unlock the power of data-driven YouTube success. Get AI-powered insights, 
-            trending analysis across 113 countries, and optimal publish time predictions 
+            trending analysis in Sri Lanka, and optimal publish time predictions 
             to skyrocket your channel growth.
           </p>
 
@@ -70,11 +70,11 @@ export const Hero = () => {
               <div className="text-white/80">Countries Analyzed</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">10M+</div>
+              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">100K+</div>
               <div className="text-white/80">Videos Tracked</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">50K+</div>
+              <div className="text-3xl sm:text-4xl font-bold text-white mb-2">10K+</div>
               <div className="text-white/80">Creators Trust Us</div>
             </div>
           </div>
