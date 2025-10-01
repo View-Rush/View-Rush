@@ -55,7 +55,8 @@ const Trending = () => {
     { name: "Japan", flag: "🇯🇵", code: "JP" },
     { name: "Brazil", flag: "🇧🇷", code: "BR" },
     { name: "India", flag: "🇮🇳", code: "IN" },
-    { name: "South Korea", flag: "🇰🇷", code: "KR" }
+    { name: "South Korea", flag: "🇰🇷", code: "KR" },
+    { name: "Sri Lanka", flag: "🇱🇰", code: "LK" }
   ];
 
   const categories = [
