@@ -1,16 +1,87 @@
-import './App.css'
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { DashboardProvider } from "@/contexts/DashboardContext";
+import Landing from "./pages/Landing";
+import Dashboard from "./pages/Dashboard";
+import Analytics from "./pages/Analytics";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+import Trending from "./pages/Trending";
+import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
+import YouTubePopupCallback from "./pages/YouTubePopupCallback";
+import NotFound from "./pages/NotFound";
 
-function App() {
+const queryClient = new QueryClient();
 
-  return (
-    <>
-      <div>
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route 
+              path="/auth/youtube/callback" 
+              element={<YouTubePopupCallback />} 
+            />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <DashboardProvider>
+                    <Dashboard />
+                  </DashboardProvider>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/analytics" 
+              element={
+                <ProtectedRoute>
+                  <Analytics />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/trending" 
+              element={
+                <ProtectedRoute>
+                  <Trending />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
-        <h1>Welcome to the View Rush!! Find the optimal time to your YouTube Success!!</h1>
-
-      </div>
-    </>
-  )
-}
-
-export default App
+export default App;

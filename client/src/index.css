@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 224 71% 4%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 224 71% 4%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71% 4%;
+
+    /* YouTube inspired primary colors */
+    --primary: 0 100% 50%;
+    --primary-foreground: 0 0% 98%;
+    --primary-glow: 0 100% 65%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 224 71% 4%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 12 100% 50%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 0 100% 50%;
+
+    --radius: 0.75rem;
+
+    /* Custom YouTube Analytics Colors */
+    --youtube-red: 0 100% 50%;
+    --youtube-red-dark: 0 100% 45%;
+    --youtube-black: 0 0% 7%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 98%;
+    --info: 221 83% 53%;
+    --info-foreground: 0 0% 98%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--youtube-red)), hsl(var(--accent)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--youtube-red)) 0%, hsl(var(--accent)) 50%, hsl(354 100% 45%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(220 14% 98%) 100%);
+    --gradient-dark: linear-gradient(135deg, hsl(var(--youtube-black)), hsl(224 71% 8%));
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(var(--youtube-red) / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(var(--youtube-red) / 0.1), 0 2px 4px -1px hsl(var(--youtube-red) / 0.06);
+    --shadow-lg: 0 10px 15px -3px hsl(var(--youtube-red) / 0.1), 0 4px 6px -2px hsl(var(--youtube-red) / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(var(--youtube-red) / 0.1), 0 10px 10px -5px hsl(var(--youtube-red) / 0.04);
+    --shadow-glow: 0 0 30px hsl(var(--youtube-red) / 0.3);
+
+    /* Animations */
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 0 0% 98%;
+
+    --card: 224 71% 4%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 224 71% 4%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 100% 50%;
+    --primary-foreground: 0 0% 98%;
+    --primary-glow: 0 100% 65%;
+
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+
+    --accent: 12 100% 50%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 0 100% 50%;
+
+    /* Dark mode custom colors */
+    --youtube-red: 0 100% 50%;
+    --youtube-red-dark: 0 100% 45%;
+    --youtube-black: 0 0% 7%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 98%;
+    --info: 221 83% 53%;
+    --info-foreground: 0 0% 98%;
+
+    /* Dark gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--youtube-red)), hsl(var(--accent)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--youtube-red)) 0%, hsl(var(--accent)) 50%, hsl(354 100% 45%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(224 71% 4%) 0%, hsl(240 3.7% 15.9%) 100%);
+    --gradient-dark: linear-gradient(135deg, hsl(var(--youtube-black)), hsl(224 71% 8%));
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
