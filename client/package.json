@@ -13,7 +13,13 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",
+    "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:report": "vitest run --reporter=verbose --reporter=html --reporter=junit --reporter=json",
+    "test:report:full": "vitest run --reporter=verbose --reporter=html --reporter=junit --reporter=json --coverage",
+    "test:ci": "vitest run --reporter=junit --reporter=json --coverage --coverage.reporter=cobertura --coverage.reporter=lcov",
+    "test:summary": "vitest run --reporter=default",
+    "reports": "node scripts/generate-reports.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

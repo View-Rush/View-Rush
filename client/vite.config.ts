@@ -24,8 +24,14 @@ export default defineConfig(({}) => ({
       "testing/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"
     ],
     exclude: ["node_modules/", "dist/", "build/", "supabase/"],
+    outputFile: {
+      html: "./testing/reports/test-report.html",
+      junit: "./testing/reports/junit.xml",
+      json: "./testing/reports/test-results.json"
+    },
     coverage: {
-      reporter: ["text", "json", "html"],
+      provider: "v8",
+      reporter: ["text", "json", "html", "lcov", "cobertura"],
       exclude: [
         "node_modules/",
         "testing/utils/",
@@ -39,6 +45,14 @@ export default defineConfig(({}) => ({
         "Junk/",
       ],
       reportsDirectory: "./testing/coverage",
+      thresholds: {
+        global: {
+          branches: 70,
+          functions: 70,
+          lines: 70,
+          statements: 70
+        }
+      }
     },
     pool: 'forks',
   },
