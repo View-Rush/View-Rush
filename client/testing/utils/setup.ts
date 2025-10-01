@@ -47,6 +47,9 @@ vi.mock('react-router-dom', async () => {
     NavLink: vi.fn(({ children, to, ...props }: any) => 
       React.createElement('a', { href: to, ...props }, children)
     ),
+    MemoryRouter: vi.fn(({ children, initialEntries = ['/'] }: any) => 
+      React.createElement('div', { 'data-testid': 'memory-router' }, children)
+    ),
     Outlet: vi.fn(() => React.createElement('div', {}, 'Outlet'))
   };
 });
@@ -270,6 +273,8 @@ vi.mock('lucide-react', () => ({
   Lock: vi.fn(() => React.createElement('div', { 'data-testid': 'lock-icon' })),
   Star: vi.fn(() => React.createElement('div', { 'data-testid': 'star-icon' })),
   CheckCircle: vi.fn(() => React.createElement('div', { 'data-testid': 'check-circle-icon' })),
+  Circle: vi.fn(() => React.createElement('div', { 'data-testid': 'circle-icon' })),
+  Save: vi.fn(() => React.createElement('div', { 'data-testid': 'save-icon' })),
   Zap: vi.fn(() => React.createElement('div', { 'data-testid': 'zap-icon' })),
   Target: vi.fn(() => React.createElement('div', { 'data-testid': 'target-icon' })),
   Calendar: vi.fn(() => React.createElement('div', { 'data-testid': 'calendar-icon' })),
