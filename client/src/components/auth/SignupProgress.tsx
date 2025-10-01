@@ -1,5 +1,5 @@
 import { CheckCircle, Circle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/util/utils';
 
 interface SignupProgressProps {
   currentStep: 'account' | 'youtube';

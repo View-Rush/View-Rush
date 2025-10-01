@@ -1,0 +1,59 @@
+# .github/labeler.yml
+
+# Label for documentation changes
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.md', '**/*.mdx', '**/docs/**', '**/documentation/**']
+
+# Label for TypeScript files
+typescript:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.ts', '**/*.tsx']
+
+# Label for JavaScript files
+javascript:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.js', '**/*.jsx']
+
+# Label for test files
+tests:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.test.*', '**/*.spec.*', '**/__tests__/**', '**/test/**']
+
+# Label for styling changes
+styling:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.css', '**/*.scss', '**/*.sass', '**/*.less']
+
+# Label for configuration files
+config:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.json', '**/*.yml', '**/*.yaml', '**/.github/**']
+
+# Label for dependencies
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file: ['package.json', 'yarn.lock', 'package-lock.json', 'pnpm-lock.yaml']
+
+# Label for GitHub Actions workflows
+github-actions:
+  - changed-files:
+    - any-glob-to-any-file: ['**/.github/workflows/**']
+
+# Label for source code changes
+source:
+  - changed-files:
+    - any-glob-to-any-file: ['src/**']
+
+# Label for build-related changes
+build:
+  - changed-files:
+    - any-glob-to-any-file: ['**/dist/**', '**/build/**', '**/*.config.js', '**/*.config.ts']
+
+# Label for bug fixes
+bug:
+  - head-branch: ['fix/**', 'bugfix/**', 'hotfix/**']
+
+# Label for features
+feature:
+  - head-branch: ['feat/**', 'feature/**']
