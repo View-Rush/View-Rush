@@ -16,7 +16,7 @@ export default defineConfig(({}) => ({
     },
   },
   test: {
-    globals: true,
+    globals: true, // use global variables like describe, it, expect (removes repetitive imports)
     environment: "jsdom",
     setupFiles: ["./testing/utils/setup.ts"],
     include: [
