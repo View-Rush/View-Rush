@@ -3,6 +3,7 @@ import numpy as np
 import logging
 from threading import Lock
 import transformers
+import torch
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
 from typing import Optional, Dict, Any
