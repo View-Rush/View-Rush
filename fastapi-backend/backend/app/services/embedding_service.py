@@ -8,6 +8,7 @@ from transformers import pipeline
 from typing import Optional, Dict, Any
 from wikipedia import page, DisambiguationError, PageError
 # Lazy-loaded global model holders
+
 _models = {
     "ner": None,
     "classifier": None,
@@ -51,26 +52,39 @@ CANDIDATE_LABELS = [
 # -------------------------
 # Helper utilities
 # -------------------------
+
 def _lazy_load_models():
     """
     Load heavy models once (thread-safe).
+    Uses GPU if available, otherwise CPU.
     """
-    
+    device = 0 if torch.cuda.is_available() else -1  # HF pipeline expects int
+    embedder_device = "cuda" if torch.cuda.is_available() else "cpu"
+
     with _models_lock:
         if _models["ner"] is None:
-            # NER
-            _models["ner"] = pipeline("ner", model="tner/twitter-roberta-base-dec2021-tweetner7-all", aggregation_strategy="simple")
-            logging.info("NER pipeline loaded.")
+            _models["ner"] = pipeline(
+                "ner",
+                model="tner/twitter-roberta-base-dec2021-tweetner7-all",
+                aggregation_strategy="simple",
+                device=device
+            )
+            logging.info(f"NER pipeline loaded on {'GPU' if device == 0 else 'CPU'}.")
 
         if _models["classifier"] is None:
-            # Zero-shot classifier
-            _models["classifier"] = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
-            logging.info("Zero-shot classifier loaded.")
+            _models["classifier"] = pipeline(
+                "zero-shot-classification",
+                model="facebook/bart-large-mnli",
+                device=device
+            )
+            logging.info(f"Zero-shot classifier loaded on {'GPU' if device == 0 else 'CPU'}.")
 
         if _models["embedder"] is None:
-            # Sentence embedder
-            _models["embedder"] = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
-            logging.info("SentenceTransformer embedder loaded.")
+            _models["embedder"] = SentenceTransformer(
+                "paraphrase-multilingual-MiniLM-L12-v2",
+                device=embedder_device
+            )
+            logging.info(f"SentenceTransformer embedder loaded on {embedder_device.upper()}.")
 
 def clean_text(text: Optional[str]) -> str:
     if not text:
