@@ -1,6 +1,3 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
-// Mock all dependencies first
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn(),
@@ -38,7 +35,6 @@ vi.mock('@/services/secureTokenService', () => ({
   },
 }));
 
-// Now import
 import { YouTubeDatabaseService } from './databaseService';
 import { supabase } from '@/integrations/supabase/client';
 import { authHelper } from '@/services/authHelper';

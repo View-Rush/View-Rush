@@ -1,6 +1,3 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
-// Mock the supabase module first before importing anything that uses it
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: {

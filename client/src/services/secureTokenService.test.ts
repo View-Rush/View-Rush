@@ -3,8 +3,6 @@
  Integration tests should be written separately for testing the actual implementation
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-
 describe('SecureTokenService Mock Testing', () => {
   const mockConnectionId = 'youtube_user_123';
   const mockTokenData = {

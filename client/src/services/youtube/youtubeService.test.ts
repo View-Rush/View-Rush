@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, MockedFunction } from 'vitest';
+import {beforeEach, MockedFunction } from 'vitest';
 
 // Mock dependencies first
 vi.mock('@/hooks/use-toast', () => ({

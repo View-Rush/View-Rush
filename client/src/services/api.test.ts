@@ -1,6 +1,3 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
-// Unmock the API service to test the real implementation
 vi.unmock('@/services/api');
 
 describe('ApiService', () => {
