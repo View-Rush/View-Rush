@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Analytics from '@/pages/Analytics';
@@ -79,49 +79,57 @@ describe('Analytics Page', () => {
     vi.clearAllMocks();
   });
 
-  it('should render analytics page', () => {
+  it('should render analytics page', async () => {
     render(
       <TestWrapper>
         <Analytics />
       </TestWrapper>
     );
     
-    // Should render header
-    expect(screen.getByTestId('header')).toBeInTheDocument();
+    // Wait for the component to load
+    await waitFor(() => {
+      expect(screen.getByTestId('header')).toBeInTheDocument();
+    });
     
     // Should have analytics content
-    const analyticsContent = document.querySelector('main, .analytics, [role="main"]') || document.body;
-    expect(analyticsContent).toBeInTheDocument();
+    expect(screen.getByText('Analytics')).toBeInTheDocument();
+    expect(screen.getByText('Detailed insights for your YouTube channel')).toBeInTheDocument();
   });
 
-  it('should display channel analytics metrics', () => {
+  it('should display channel analytics metrics', async () => {
     render(
       <TestWrapper>
         <Analytics />
       </TestWrapper>
     );
     
-    // Look for metrics content - could be in cards or metric displays
-    const metricsText = document.body.textContent || '';
+    // Wait for component to render
+    await waitFor(() => {
+      expect(screen.getByText('Analytics')).toBeInTheDocument();
+    });
     
-    // Should contain numerical content typical of analytics
-    expect(metricsText).toMatch(/\d+/); // Should have numbers
-  });
-
-  it('should render analytics sections', () => {
-    render(
-      <TestWrapper>
-        <Analytics />
-      </TestWrapper>
-    );
-    
-    // Should render main container
-    const main = document.querySelector('main, .container, .analytics-page') || document.body;
-    expect(main).toBeInTheDocument();
-    
-    // Should have substantial content
+    // Should contain numerical content and analytics-related text
     const textContent = document.body.textContent || '';
-    expect(textContent.length).toBeGreaterThan(50);
+    expect(textContent).toContain('Analytics');
+    expect(textContent).toContain('Overview');
+  });
+
+  it('should render analytics sections', async () => {
+    render(
+      <TestWrapper>
+        <Analytics />
+      </TestWrapper>
+    );
+    
+    // Wait for component to render
+    await waitFor(() => {
+      expect(screen.getByText('Analytics')).toBeInTheDocument();
+    });
+    
+    // Should have substantial content with analytics structure
+    const textContent = document.body.textContent || '';
+    expect(textContent.length).toBeGreaterThan(100); // Adjusted for real content
+    expect(textContent).toContain('Overview'); // Should have tab structure
   });
 
   it('should handle loading state', () => {

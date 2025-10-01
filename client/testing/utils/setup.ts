@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { vi, beforeAll, afterAll } from 'vitest';
+import { vi, beforeAll, afterAll, afterEach } from 'vitest';
 import React from 'react';
 
 // Mock crypto for secure token service tests
@@ -49,6 +49,13 @@ vi.mock('react-router-dom', async () => {
     ),
     MemoryRouter: vi.fn(({ children, initialEntries = ['/'] }: any) => 
       React.createElement('div', { 'data-testid': 'memory-router' }, children)
+    ),
+    Navigate: vi.fn(({ to, replace }: any) => 
+      React.createElement('div', { 
+        'data-testid': 'navigate', 
+        'data-to': to, 
+        'data-replace': replace?.toString() 
+      }, `Redirecting to ${to}`)
     ),
     Outlet: vi.fn(() => React.createElement('div', {}, 'Outlet'))
   };
@@ -174,11 +181,35 @@ vi.mock('@/services/connectionStateManager', () => ({
   }
 }));
 
-vi.mock('@/services/youtube/youtubeService', () => ({
-  default: {
+vi.mock('@/services/youtube', () => ({
+  youtubeService: {
     getAnalytics: vi.fn(),
     getChannelInfo: vi.fn(),
     getVideoStats: vi.fn(),
+    getUserConnections: vi.fn().mockResolvedValue([
+      {
+        id: 'test-connection-1',
+        channel_id: 'test-channel-1',
+        channel_title: 'Test Channel',
+        is_active: true,
+        created_at: '2024-01-01T00:00:00.000Z',
+      }
+    ]),
+    getChannelAnalytics: vi.fn().mockResolvedValue({
+      subscriber_count: 1000,
+      view_count: 50000,
+      video_count: 25,
+      recent_videos: [],
+      performance_metrics: {
+        average_views_per_video: 2000,
+        engagement_rate: 0.05,
+        upload_frequency: 1.5,
+        best_performing_time: '14:00',
+        best_performing_day: 'Monday',
+        average_engagement_rate: 0.05,
+      },
+    }),
+    syncChannelAnalytics: vi.fn().mockResolvedValue({}),
   }
 }));
 
@@ -282,7 +313,12 @@ vi.mock('lucide-react', () => ({
   Globe: vi.fn(() => React.createElement('div', { 'data-testid': 'globe-icon' })),
   Clock: vi.fn(() => React.createElement('div', { 'data-testid': 'clock-icon' })),
   Activity: vi.fn(() => React.createElement('div', { 'data-testid': 'activity-icon' })),
-  Play: vi.fn(() => React.createElement('div', { 'data-testid': 'play-icon' }))
+  Play: vi.fn(() => React.createElement('div', { 'data-testid': 'play-icon' })),
+  Palette: vi.fn(() => React.createElement('div', { 'data-testid': 'palette-icon' })),
+  Shield: vi.fn(() => React.createElement('div', { 'data-testid': 'shield-icon' })),
+  Trash2: vi.fn(() => React.createElement('div', { 'data-testid': 'trash2-icon' })),
+  ChevronUp: vi.fn(() => React.createElement('div', { 'data-testid': 'chevron-up-icon' })),
+  Check: vi.fn(() => React.createElement('div', { 'data-testid': 'check-icon' }))
 }));
 
 // Mock environment variables for testing
@@ -345,6 +381,15 @@ beforeAll(() => {
     }
     originalError.call(console, ...args);
   };
+});
+
+afterAll(() => {
+  console.error = originalError;
+});
+
+// Clear all timers after each test to prevent interference
+afterEach(() => {
+  vi.clearAllTimers();
 });
 
 afterAll(() => {

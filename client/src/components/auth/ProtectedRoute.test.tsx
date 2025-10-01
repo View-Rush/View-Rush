@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing/utils/test-helpers';
+import { render, screen } from '../../../testing/utils/test-helpers';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import * as useAuthModule from '@/hooks/useAuth';
 
@@ -26,6 +26,8 @@ describe('ProtectedRoute Component', () => {
       </ProtectedRoute>,
       { initialEntries: ['/dashboard'] }
     );
+  
+  screen.debug()
 
     // Should show loading spinner and not show protected content
     expect(document.querySelector('.animate-spin')).toBeInTheDocument();
@@ -54,6 +56,12 @@ describe('ProtectedRoute Component', () => {
 
     // Should not render protected content
     expect(screen.queryByText('Protected Content')).not.toBeInTheDocument();
+    
+    // Should render the Navigate component (mocked) with correct props
+    const navigateElement = screen.getByTestId('navigate');
+    expect(navigateElement).toBeInTheDocument();
+    expect(navigateElement).toHaveAttribute('data-to', '/auth');
+    expect(navigateElement).toHaveAttribute('data-replace', 'true');
   });
 
   it('should render children when user is authenticated', () => {
