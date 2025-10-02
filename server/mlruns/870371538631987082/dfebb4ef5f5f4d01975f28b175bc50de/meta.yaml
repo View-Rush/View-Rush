@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/870371538631987082/dfebb4ef5f5f4d01975f28b175bc50de/artifacts
+end_time: 1759223515582
+entry_point_name: ''
+experiment_id: '870371538631987082'
+lifecycle_stage: active
+run_id: dfebb4ef5f5f4d01975f28b175bc50de
+run_name: FusionModelRun_2
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1759223515476
+status: 4
+tags: []
+user_id: Madhshankha De Silva

@@ -17,9 +17,6 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { ChannelConnectionsList } from '@/components/ui/channel-connections-list';
-import { YouTubeConnectionTest } from '@/components/ui/youtube-connection-test';
-import { AuthDebugTest } from '@/components/ui/auth-debug-test';
-import { YouTubeAPITest } from '@/components/ui/youtube-api-test';
 import Header from '@/components/layout/Header';
 import { useDashboard } from '@/contexts/DashboardContext';
 
@@ -312,15 +309,6 @@ const Dashboard = () => {
 
         {/* Settings Tab */}
         <TabsContent value="settings" className="space-y-6">
-          {/* Auth Debug Component */}
-          <AuthDebugTest />
-          
-          {/* YouTube API Test Component */}
-          <YouTubeAPITest />
-          
-          {/* YouTube Connection Debug Component */}
-          <YouTubeConnectionTest />
-          
           <Card>
             <CardHeader>
               <CardTitle>Dashboard Settings</CardTitle>
