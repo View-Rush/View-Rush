@@ -2,7 +2,6 @@
   command = "npm run build"
   publish = "dist"
 
-# Required for React/TypeScript apps - MIME type fixes
 [[headers]]
   for = "/*.js"
   [headers.values]
@@ -29,11 +28,16 @@
     "Content-Type" = "application/javascript"
 
 [[headers]]
-  for = "/assets/*"
+  for = "/*.css"
   [headers.values]
-    "Content-Type" = "application/javascript"
+    "Content-Type" = "text/css"
 
-# Single page app configuration - important for React Router
+[[headers]]
+  for = "/assets/*.css"
+  [headers.values]
+    "Content-Type" = "text/css"
+
+# Single page app configuration
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -50,3 +54,4 @@
 # Secrets scanning configuration
 [build.environment]
   SECRETS_SCAN_OMIT_PATHS = "dist/*, supabase/config.toml"
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_PROJECT_ID,VITE_SUPABASE_PUBLISHABLE_KEY,VITE_SUPABASE_URL,VITE_YOUTUBE_CLIENT_ID,VITE_YOUTUBE_CLIENT_SECRET,VITE_YOUTUBE_REDIRECT_URI"
