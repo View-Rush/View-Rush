@@ -1,12 +1,15 @@
-import os
 import re
 import numpy as np
 import logging
 from threading import Lock
-import transformers
 from sentence_transformers import SentenceTransformer
-from transformers import pipeline
 from typing import Optional, Dict, Any
+try:
+    import torch  # type: ignore
+    _TORCH_AVAILABLE = True
+except Exception:
+    torch = None  # type: ignore
+    _TORCH_AVAILABLE = False
 
 
 # Lazy-loaded global model holders
@@ -14,6 +17,7 @@ _models = {
     "embedder": None
 }
 _models_lock = Lock()
+_device: str = "cuda" if (_TORCH_AVAILABLE and torch.cuda.is_available()) else "cpu"
 
 # -------------------------
 # Helper utilities
@@ -27,9 +31,9 @@ def _lazy_load_models():
         if _models["embedder"] is None:
             _models["embedder"] = SentenceTransformer(
                 "paraphrase-multilingual-MiniLM-L12-v2",
-                
+                device=_device,
             )
-            logging.info("SentenceTransformer embedder loaded.")
+            logging.info(f"SentenceTransformer embedder loaded on device: {_device}")
             
 def clean_text(text: Optional[str]) -> str:
     if not text:
@@ -81,18 +85,28 @@ def video_to_weighted_embedding(video_struct: Dict[str, Any], global_max_views: 
     For one video structure (with linked_entities, topics, view_count), create a weighted embedding vector.
     Returns None if nothing to embed.
     """
+    # Ensure model is loaded
+    if _models["embedder"] is None:
+        _lazy_load_models()
     embedder = _models["embedder"]
     texts_to_embed = []
 
     # Add topics
-    text_first = video_struct.get("clean_title")+" "+video_struct.get("clean_description", "")
-    texts_to_embed.extend(text_first)
+    text_first = (video_struct.get("clean_title") or "") + " " + (video_struct.get("clean_description", "") or "")
+    if text_first.strip():
+        # append as a single item, not char-by-char
+        texts_to_embed.append(text_first)
 
     if not texts_to_embed:
         return None
 
     # get embeddings (sentence_transformers returns np array)
-    entity_embeddings = embedder.encode(texts_to_embed, convert_to_numpy=True)
+    entity_embeddings = embedder.encode(
+        texts_to_embed,
+        convert_to_numpy=True,
+        batch_size=32,
+        show_progress_bar=False,
+    )
 
     # mean pooling over entities/topics
     if entity_embeddings.ndim == 1:
