@@ -11,6 +11,13 @@ class EmbeddingRequest(BaseModel):
     content_embedding: list[float]
     user_embedding: list[float]
 
+
+class BidirectionalModelInput(BaseModel):
+    user_embedding: list[float]
+    video_embedding: list[float]
+    
+
+
 class VideoIn(BaseModel):
     title: str
     description: str

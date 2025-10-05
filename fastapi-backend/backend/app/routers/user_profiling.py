@@ -8,7 +8,7 @@ router = APIRouter(prefix="/user-profiling", tags=["User Profiling Tower"])
 def get_user_profile(request: UserProfileRequest):
     # Fetch channel details and recent videos
     channel_data = get_channel_details(request.channel_id)
-    videos_data = get_channel_videos(request.channel_id, max_results=10)
+    videos_data = get_channel_videos(request.channel_id, max_results=11)
 
     channel_info = channel_data["items"][0]
 

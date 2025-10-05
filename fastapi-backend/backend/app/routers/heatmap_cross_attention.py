@@ -86,11 +86,25 @@ class FusionModel(nn.Module):
 # ---------------------------
 router = APIRouter(prefix="/cross-attention-fusion-model", tags=["Fusion Model"])
 
-# Example embedding dimension
-embed_dim = 384
-num_slots = 168  # 7 days * 24 hours
-model = FusionModel(embed_dim, num_heads=4, num_slots=num_slots)
+# # Example embedding dimension
+# embed_dim = 384
+# num_slots = 168  # 7 days * 24 hours
+# model = FusionModel(embed_dim, num_heads=4, num_slots=num_slots)
+# model.eval()
+
+
+# Initialize model
+EMBED_DIM = 384
+NUM_HEADS = 4
+NUM_SLOTS = 168
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+model = FusionModel(embed_dim=EMBED_DIM, num_heads=NUM_HEADS, num_slots=NUM_SLOTS)
+model.load_state_dict(torch.load("fusion_model.pth", map_location=device))
+model.to(device)
 model.eval()
+
+
 
 @router.post("/predict-heatmap")
 def predict_heatmap(payload: EmbeddingRequest):

@@ -7,7 +7,6 @@ import torch
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
 from typing import Optional, Dict, Any
-from wikipedia import page, DisambiguationError, PageError
 # Lazy-loaded global model holders
 
 _models = {
@@ -131,60 +130,32 @@ def preprocess_youtube_response(api_response: Dict[str, Any]) -> Dict[str, Any]:
         },
         "videos": processed_videos
     }
-
-# -------------------------
-# Entity linking & topic scoring
-# -------------------------
 def extract_entities_and_link(processed_video: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Run NER on the combined title+description, then attempt simple Wikipedia linking.
-    Returns linked_entities list and discovered entity strings.
+    Run NER on the combined title + description.
+    Returns a list of extracted entity mentions (without Wikipedia linking).
     """
-    
     text = (processed_video.get("clean_title", "") + " " + processed_video.get("clean_description", "")).strip()
     ner = _models["ner"]
+
     ner_results = ner(text) if text else []
-    # aggregated ner pipeline returns items like {"word": "google", "entity_group": "ORG", "score": 0.99}
     mentions = []
+
     for ent in ner_results:
         word = ent.get("word")
         if not word:
             continue
-        # clean single-token artifacts
         word = word.strip()
         if len(word) <= 1:
             continue
-        mentions.append({"mention": word, "score": float(ent.get("score", 1.0))})
 
-    # simple wikipedia linking
-    linked = []
-    for m in mentions:
-        try:
-            wp = page(m["mention"], auto_suggest=True)
-            linked.append({
-                "mention": m["mention"],
-                "entity": wp.title,
-                "score": m["score"],
-                "wikipedia_id": wp.pageid
-            })
-        except DisambiguationError as e:
-            # pick first option as fallback
-            option = e.options[0] if e.options else m["mention"]
-            linked.append({
-                "mention": m["mention"],
-                "entity": option,
-                "score": m["score"],
-                "wikipedia_id": None
-            })
-        except PageError:
-            # no page found, skip
-            continue
-        except Exception as exc:
-            # safety: don't break pipeline for minor wikipedia failures
-            logging.debug(f"Wikipedia linking error for {m['mention']}: {exc}")
-            continue
+        mentions.append({
+            "mention": word,
+            "score": float(ent.get("score", 1.0))
+        })
 
-    return {"mentions": mentions, "linked_entities": linked}
+    # Return only extracted mentions
+    return {"mentions": mentions, "linked_entities": mentions}
 
 def score_topics(processed_video: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -201,37 +172,35 @@ def score_topics(processed_video: Dict[str, Any]) -> Dict[str, Any]:
     scores = [float(s) for s in res.get("scores", [])[:top_k]]
     return {"topics": labels, "scores": scores}
 
+
 def video_to_weighted_embedding(video_struct: Dict[str, Any], global_max_views: float) -> Optional[np.ndarray]:
-    """
-    For one video structure (with linked_entities, topics, view_count), create a weighted embedding vector.
-    Returns None if nothing to embed.
-    """
+
     embedder = _models["embedder"]
-    texts_to_embed = []
+    title = video_struct.get("clean_title", "")
+    desc = video_struct.get("clean_description", "")
+    entities = [e["entity"] for e in video_struct.get("linked_entities", []) if e.get("entity")]
+    topics = video_struct.get("topics", [])
 
-    # Add canonical linked entity titles
-    for ent in video_struct.get("linked_entities", []):
-        if ent.get("entity"):
-            texts_to_embed.append(ent["entity"])
+    texts = []
+    weights = []
 
-    # Add topics
-    texts_to_embed.extend(video_struct.get("topics", []))
+    if title or desc:
+        texts.append(f"{title} {desc}")
+        weights.append(0.6)
+    if entities:
+        texts.append(" ".join(entities))
+        weights.append(0.25)
+    if topics:
+        texts.append(" ".join(topics))
+        weights.append(0.15)
 
-    if not texts_to_embed:
+    if not texts:
         return None
 
-    # get embeddings (sentence_transformers returns np array)
-    entity_embeddings = embedder.encode(texts_to_embed, convert_to_numpy=True)
+    embs = embedder.encode(texts, convert_to_numpy=True)
+    embs = np.average(embs, axis=0, weights=weights)
 
-    # mean pooling over entities/topics
-    if entity_embeddings.ndim == 1:
-        mean_emb = entity_embeddings
-    else:
-        mean_emb = np.mean(entity_embeddings, axis=0)
-
-    # compute normalized weight from view count (0..1). avoid divide-by-zero
     view_count = float(video_struct.get("view_count", 0) or 0)
     weight = view_count / max(1.0, global_max_views)
-    weighted_emb = mean_emb * weight
+    return embs * weight
 
-    return weighted_emb
