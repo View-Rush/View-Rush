@@ -46,10 +46,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       async (event, session) => {
         if (!mounted) return;
         
-        console.log('Auth state change:', event, session?.user?.email || 'no user');
-        
         if (event === 'SIGNED_OUT' || !session) {
-          console.log('Handling SIGNED_OUT event');
           setSession(null);
           setUser(null);
           setLoading(false);
@@ -84,7 +81,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
               
               // Navigate to home only if we're on a protected route
               if (protectedRoutes.some(route => currentPath.startsWith(route))) {
-                console.log('Navigating from protected route to home after sign out');
                 navigate('/', { replace: true });
               }
             }, 50);
@@ -93,7 +89,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
         
         if (event === 'SIGNED_IN' && session?.user) {
-          console.log('Handling SIGNED_IN event for:', session.user.email);
           setSession(session);
           setUser(session.user);
           setLoading(false);
@@ -109,7 +104,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
         
         if (event === 'TOKEN_REFRESHED' && session) {
-          console.log('Token refreshed for:', session.user?.email);
           setSession(session);
           setUser(session.user);
           setLoading(false);
@@ -128,11 +122,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!mounted) return;
       
       if (error) {
-        console.error('Error getting session:', error);
         setSession(null);
         setUser(null);
       } else {
-        console.log('Initial session check:', session?.user?.email || 'no user');
         setSession(session);
         setUser(session?.user ?? null);
       }
@@ -169,9 +161,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signOut = async () => {
     try {
-      console.log('SignOut started - Current user:', user?.email);
-      console.log('Current localStorage keys:', Object.keys(localStorage));
-      
       // First, clear local state to immediately update UI
       setUser(null);
       setSession(null);
@@ -179,11 +168,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       // Clear auth-related storage items selectively
       try {
-        console.log('Clearing auth-related storage...');
-        
         // Get all localStorage keys before clearing
         const allKeys = Object.keys(localStorage);
-        console.log('LocalStorage keys before clearing:', allKeys);
         
         // Clear specific Supabase auth keys instead of everything
         const authKeys = allKeys.filter(key => 
@@ -195,7 +181,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         
         authKeys.forEach(key => {
           localStorage.removeItem(key);
-          console.log('Removed localStorage key:', key);
         });
         
         // Clear session storage selectively to preserve OAuth states
@@ -212,11 +197,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         youtubeOAuthKeys.forEach(key => {
           if (sessionStorage.getItem(key)) {
             sessionStorage.removeItem(key);
-            console.log('Cleared YouTube OAuth key on sign-out:', key);
           }
         });
-        
-        console.log('Auth storage cleared. Remaining localStorage keys:', Object.keys(localStorage));
       } catch (storageError) {
         console.error('Error clearing storage:', storageError);
       }
@@ -236,7 +218,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
       } catch (swError) {
-        console.error('Service worker cleanup failed:', swError);
+        // Silent error - service worker cleanup is best-effort
       }
 
       // Clear IndexedDB (where Supabase might store data)
@@ -245,13 +227,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const databases = await indexedDB.databases();
           for (const db of databases) {
             if (db.name && db.name.includes('supabase')) {
-              console.log('Deleting IndexedDB:', db.name);
               indexedDB.deleteDatabase(db.name);
             }
           }
         }
       } catch (idbError) {
-        console.error('IndexedDB cleanup failed:', idbError);
+        // Silent error - IndexedDB cleanup is best-effort
       }
 
       // Force clear cookies
@@ -259,8 +240,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
       });
 
-      console.log('All cleanup completed. Navigation will be handled by auth state listener...');
-      
       // Let the auth state listener handle navigation, but add a fallback
       setTimeout(() => {
         // Fallback navigation if auth state listener doesn't fire
@@ -268,14 +247,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const protectedRoutes = ['/dashboard', '/analytics', '/profile', '/settings', '/trending'];
         
         if (protectedRoutes.some(route => currentPath.startsWith(route))) {
-          console.log('Fallback navigation: moving from protected route to home');
           navigate('/', { replace: true });
         }
       }, 200); // Give auth state listener time to fire first
       
     } catch (error) {
-      console.error('Critical sign out error:', error);
-      
       // Emergency cleanup - force clear everything except OAuth states
       try {
         localStorage.clear();

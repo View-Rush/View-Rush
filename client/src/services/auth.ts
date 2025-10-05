@@ -43,8 +43,6 @@ class AuthService {
   async signUp(data: SignUpData): Promise<{ user: User | null; error: any }> {
     try {
       const { email, password, displayName, firstName, lastName, metadata = {} } = data;
-      
-      console.log('Starting signup process for:', email);
 
       // Prepare user metadata
       const userMetadata = {
@@ -53,8 +51,6 @@ class AuthService {
         last_name: lastName,
         ...metadata,
       };
-
-      console.log('User metadata prepared:', userMetadata);
 
       const response = await supabase.auth.signUp({
         email,
@@ -65,15 +61,7 @@ class AuthService {
         },
       });
 
-      console.log('Supabase signup response:', response);
-
       if (response.error) {
-        console.error('Signup error details:', {
-          message: response.error.message,
-          status: response.error.status,
-          name: response.error.name,
-        });
-        
         toast({
           title: "Sign up failed",
           description: `${response.error.message} (Status: ${response.error.status || 'Unknown'})`,
@@ -96,8 +84,6 @@ class AuthService {
 
       return { user: response.data.user, error: null };
     } catch (error) {
-      console.error('Sign up error:', error);
-      
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       toast({
         title: "Sign up failed",
@@ -139,7 +125,6 @@ class AuthService {
         error: null 
       };
     } catch (error) {
-      console.error('Sign in error:', error);
       return { user: null, session: null, error };
     }
   }
@@ -147,38 +132,27 @@ class AuthService {
   // Sign out user
   async signOut(): Promise<{ error: any }> {
     try {
-      console.log('AuthService: Starting sign out...');
-      
       // Sign out from Supabase with local scope
-      console.log('AuthService: Attempting local sign out...');
       let { error } = await supabase.auth.signOut({ scope: 'local' });
       
       if (error) {
-        console.error('Local sign out failed, trying global:', error);
         // If local fails, try global
         const globalResult = await supabase.auth.signOut({ scope: 'global' });
         error = globalResult.error;
       }
       
       if (error) {
-        console.error('Supabase sign out failed:', error);
         // Even if Supabase fails, we should continue with cleanup
-      } else {
-        console.log('Supabase sign out successful');
       }
 
       // Force clear the session from the client
-      console.log('AuthService: Clearing client session...');
       try {
         await supabase.auth.admin.signOut(await supabase.auth.getSession().then(res => res.data.session?.access_token || ''));
       } catch (adminError) {
-        console.log('Admin sign out not available (expected in client-side)');
+        // Admin sign out not available in client-side
       }
-
-      console.log('AuthService: Sign out process completed');
       return { error: null }; // Return success even if there were minor errors
     } catch (error) {
-      console.error('AuthService: Sign out error:', error);
       return { error };
     }
   }
@@ -233,7 +207,6 @@ class AuthService {
 
       return { error: null };
     } catch (error) {
-      console.error('Password reset error:', error);
       return { error };
     }
   }
@@ -263,7 +236,6 @@ class AuthService {
 
       return { error: null };
     } catch (error) {
-      console.error('Password update error:', error);
       return { error };
     }
   }
@@ -274,7 +246,6 @@ class AuthService {
       const { data, error } = await supabase.auth.getSession();
       return { session: data.session, error };
     } catch (error) {
-      console.error('Get session error:', error);
       return { session: null, error };
     }
   }
@@ -285,7 +256,6 @@ class AuthService {
       const { data, error } = await supabase.auth.getUser();
       return { user: data.user, error };
     } catch (error) {
-      console.error('Get user error:', error);
       return { user: null, error };
     }
   }
@@ -327,7 +297,6 @@ class AuthService {
 
       return { user: data.user, error: null };
     } catch (error) {
-      console.error('Profile update error:', error);
       return { user: null, error };
     }
   }
@@ -338,7 +307,6 @@ class AuthService {
       const { data, error } = await supabase.auth.refreshSession();
       return { session: data.session, error };
     } catch (error) {
-      console.error('Refresh session error:', error);
       return { session: null, error };
     }
   }

@@ -59,10 +59,6 @@ export class SecureTokenService {
         throw new Error('Connection ID and access token are required');
       }
 
-      console.log('Storing encrypted tokens for connection:', connectionId);
-      console.log('Access token length:', tokenData.access_token.length);
-      console.log('Refresh token present:', !!tokenData.refresh_token);
-
       const { error } = await supabase.rpc('insert_encrypted_tokens_direct', {
         p_connection_id: connectionId,
         p_access_token: tokenData.access_token,
@@ -70,7 +66,6 @@ export class SecureTokenService {
       });
 
       if (error) {
-        console.error('Error storing encrypted tokens:', error);
         toast({
           title: "Token Storage Failed",
           description: "Failed to securely store authentication tokens.",
@@ -79,12 +74,10 @@ export class SecureTokenService {
         return { success: false, error: error.message };
       }
 
-      console.log('Tokens stored successfully for connection:', connectionId);
       return { success: true };
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Store tokens error:', errorMessage);
       toast({
         title: "Security Error",
         description: "Failed to store tokens securely.",
@@ -111,7 +104,6 @@ export class SecureTokenService {
       });
 
       if (error) {
-        console.error('Error retrieving tokens:', error);
         toast({
           title: "Token Retrieval Failed",
           description: "Failed to retrieve authentication tokens.",
@@ -121,10 +113,8 @@ export class SecureTokenService {
       }
 
       if (!data) {
-        console.log('No tokens found for connection:', connectionId);
         return null;
       }
-      console.log('Tokens retrieved successfully for connection:', connectionId);
       return {
         access_token: data[0].access_token,
         refresh_token: data[0].refresh_token,
@@ -132,7 +122,6 @@ export class SecureTokenService {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Get tokens error:', errorMessage);
       toast({
         title: "Security Error",
         description: "Failed to retrieve tokens securely.",
@@ -164,7 +153,6 @@ export class SecureTokenService {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Update access token error:', errorMessage);
       return { success: false, error: errorMessage };
     }
   }
@@ -184,16 +172,12 @@ export class SecureTokenService {
         .eq('connection_id', connectionId);
 
       if (error) {
-        console.error('Error deleting encrypted tokens:', error);
         return { success: false, error: error.message };
       }
-
-      console.log('Tokens deleted securely for connection:', connectionId);
       return { success: true };
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Delete tokens error:', errorMessage);
       return { success: false, error: errorMessage };
     }
   }
@@ -212,7 +196,6 @@ export class SecureTokenService {
       return !error && !!data;
 
     } catch (error) {
-      console.error('Has tokens check error:', error);
       return false;
     }
   }
