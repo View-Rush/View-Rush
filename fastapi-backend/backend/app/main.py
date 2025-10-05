@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.routers import user_profiling, test_youtube, heatmap,heatmap_cross_attention,heatmap_cross_attention_at_2
-from app.routers import profile_embedding
+from app.routers import profile_embedding,video_embedding
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="YouTube Optimal Time Backend")
@@ -20,3 +20,6 @@ app.include_router(profile_embedding.router)
 app.include_router(heatmap.router)
 app.include_router(heatmap_cross_attention.router)
 app.include_router(heatmap_cross_attention_at_2.router)
+
+
+app.include_router(video_embedding.router)

@@ -6,3 +6,4 @@ python-dotenv==1.0.1
 wikipedia==1.4.0
 sentence-transformers==3.2.1
 matplotlib
+gradio_client

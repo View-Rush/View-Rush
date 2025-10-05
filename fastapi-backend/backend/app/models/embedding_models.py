@@ -2,6 +2,13 @@
 from pydantic import BaseModel
 from typing import List, Dict, Any
 
+class VideoInput(BaseModel):
+    title: str
+    description: str
+    tags: str
+    thumbnail_url: str
+
+
 class HeatmapResponse(BaseModel):
     slot_probabilities: dict[int, float]  # slot_id -> probability
 
