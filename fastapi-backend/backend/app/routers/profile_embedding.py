@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 from app.models.embedding_models import ChannelResponseIn, EmbeddingOut, VideoIn
 
 # Import or define _lazy_load_models
-from app.services.embedding_service import _lazy_load_models, clean_text, preprocess_youtube_response, extract_entities_and_link, score_topics, video_to_weighted_embedding, _models
+from app.services.embedding_service import _lazy_load_models, clean_text, preprocess_youtube_response, video_to_weighted_embedding, _models
 router = APIRouter(prefix="/embed", tags=["Profile Embedding"])
 
 # -------------------------
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/embed", tags=["Profile Embedding"])
 def build_channel_embedding(payload: ChannelResponseIn):
     """
     Accepts the YouTube-channel-response JSON (as ChannelResponseIn),
-    runs preprocessing, entity linking, topic scoring, embeddings, and returns the channel embedding.
+    runs preprocessing, entity linking, embeddings, and returns the channel embedding.
     """
     # Lazy-load heavy models on demand (thread-safe)
     try:
@@ -46,22 +46,11 @@ def build_channel_embedding(payload: ChannelResponseIn):
     max_views = max([v.get("view_count", 0) for v in videos]) if videos else 1.0
 
     # Step 2 & 3: entity linking + topic scoring -> build per-video structure
-    final_videos = []
-    for v in videos:
-        el = extract_entities_and_link(v)
-        topic_info = score_topics(v) if (len(el.get("mentions", [])) <= 10) else {"topics": [], "scores": []}
-        final_videos.append({
-            "clean_title": v.get("clean_title"),
-            "clean_description": v.get("clean_description"),
-            "view_count": v.get("view_count", 0),
-            "linked_entities": el.get("linked_entities", []),
-            "topics": topic_info.get("topics", []),
-            "scores": topic_info.get("scores", [])
-        })
+    
 
     # Step 4: Embedding + weighting
     video_embeddings = []
-    for v in final_videos:
+    for v in videos:
         emb = video_to_weighted_embedding(v, global_max_views=max_views)
         if emb is not None:
             video_embeddings.append(emb)

@@ -18,11 +18,11 @@ app.add_middleware(
 app.include_router(test_youtube.router)
 app.include_router(user_profiling.router)
 app.include_router(profile_embedding.router)
-app.include_router(heatmap.router)
-app.include_router(heatmap_cross_attention.router)
-app.include_router(heatmap_cross_attention_at_2.router)
+#app.include_router(heatmap.router)
+#app.include_router(heatmap_cross_attention.router)
+# app.include_router(heatmap_cross_attention_at_2.router)
 
 
-app.include_router(video_embedding.router)
-app.include_router(combined_channel_video_heatmap.router)
-app.include_router(combined_channel_emb_video.router)
+# app.include_router(video_embedding.router)
+# app.include_router(combined_channel_video_heatmap.router)
+# app.include_router(combined_channel_emb_video.router)
