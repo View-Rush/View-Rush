@@ -19,15 +19,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { ChannelConnectionsList } from '@/components/ui/channel-connections-list';
 import Header from '@/components/layout/Header';
 import { useDashboard } from '@/contexts/DashboardContext';
+import { YouTubeHeatmap } from '@/components/ui/YouTubeHeatmap';
 
 const Dashboard = () => {
+
   const { user, loading: authLoading, signOut } = useAuth();
   const [selectedTab, setSelectedTab] = useState('overview');
-  
+
   // Use dashboard context for all data management
   const {
     analyticsData,
-    predictionsData,
     loading,
     hasConnections,
     channelConnections,
@@ -38,6 +39,28 @@ const Dashboard = () => {
     disconnectChannel: handleDisconnectChannel,
     refreshConnections,
   } = useDashboard();
+
+  // Dummy predictionsData for development
+  const predictionsData = {
+    optimal_publish_times: [
+      { day: 'Monday', time: '18:00', confidence: 0.92, predicted_views: 12000 },
+      { day: 'Wednesday', time: '20:00', confidence: 0.88, predicted_views: 9500 },
+      { day: 'Friday', time: '19:00', confidence: 0.85, predicted_views: 11000 },
+    ],
+    content_recommendations: [
+      { category: 'Tech Reviews', suggested_duration: '8-12 min', predicted_engagement: 0.76 },
+      { category: 'Tutorials', suggested_duration: '10-15 min', predicted_engagement: 0.82 },
+      { category: 'Vlogs', suggested_duration: '6-10 min', predicted_engagement: 0.68 },
+    ],
+    heatmap: Array.from({ length: 7 }, (_, d) =>
+      Array.from({ length: 24 }, (_, h) => {
+        // Simulate higher scores in evenings
+        const peak = Math.exp(-Math.pow((h-20)/4,2));
+        const base = 0.05 + 0.4*Math.random();
+        return Math.min(1, Math.max(0, base + peak* (0.4 + 0.3*Math.random())));
+      })
+    ),
+  };
 
   const handleRefreshData = async () => {
     if (!hasConnections) {
@@ -243,6 +266,7 @@ const Dashboard = () => {
         <TabsContent value="predictions" className="space-y-6">
           {predictionsData ? (
             <>
+              {/* Optimal Publishing Times Card */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -271,6 +295,7 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
+              {/* Content Recommendations Card */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -298,6 +323,30 @@ const Dashboard = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Heatmap Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Publish-Time Heatmap
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Visualize optimal times to publish for maximum engagement.
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="py-2">
+                    {predictionsData.heatmap ? (
+                      <YouTubeHeatmap heatmapData={predictionsData.heatmap} />
+                    ) : (
+                      <div className="h-64 flex items-center justify-center text-muted-foreground">
+                        No heatmap data available.
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </>
           ) : (
             <div className="text-center py-12">
@@ -305,48 +354,6 @@ const Dashboard = () => {
               <p className="text-center text-muted-foreground">Connect a channel to get AI predictions</p>
             </div>
           )}
-        </TabsContent>
-
-        {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Dashboard Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Auto-refresh data</h4>
-                  <p className="text-sm text-muted-foreground">Automatically refresh dashboard data every 5 minutes</p>
-                </div>
-                <Button variant="outline" size="sm">Configure</Button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Export data</h4>
-                  <p className="text-sm text-muted-foreground">Download your analytics data as CSV</p>
-                </div>
-                <Button variant="outline" size="sm">Export</Button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Clear cache</h4>
-                  <p className="text-sm text-muted-foreground">Clear all cached analytics data</p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    // Clear cache and refresh data
-                    handleRefreshData();
-                    toast({ title: "Cache cleared", description: "All cached data has been cleared and refreshed." });
-                  }}
-                >
-                  Clear
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
       </div>
