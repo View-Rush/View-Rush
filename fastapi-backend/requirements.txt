@@ -1,0 +1,31 @@
+# Core FastAPI dependencies
+fastapi==0.115.0
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Environment and configuration
+python-dotenv==1.0.0
+
+# HTTP requests
+requests==2.31.0
+
+# Machine Learning and NLP
+torch>=2.0.0
+transformers>=4.30.0
+sentence-transformers>=2.2.0
+numpy>=1.24.0
+
+# Data visualization
+matplotlib>=3.7.0
+
+# CORS support (already included in FastAPI, but explicit for clarity)
+# fastapi already includes starlette which has CORS middleware
+wikipedia>=1.4.0
+# Additional dependencies that might be needed
+Pillow>=9.5.0
+scipy>=1.10.0
+
+gradio_client
+pydantic
+torchvision
+scikit-learn>=1.2.0.
