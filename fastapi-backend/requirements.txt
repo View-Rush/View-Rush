@@ -28,4 +28,4 @@ scipy>=1.10.0
 gradio_client
 pydantic
 torchvision
-scikit-learn>=1.2.0.
+scikit-learn>=1.2.0
