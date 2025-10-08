@@ -19,6 +19,16 @@ interface AnalyticsData {
     likes: number;
     comments: number;
     published_at: string;
+    privacyStatus?: string;
+  }>;
+  private_unlisted_videos?: Array<{
+    id: string;
+    title: string;
+    views: number;
+    likes: number;
+    comments: number;
+    published_at: string;
+    privacyStatus?: string;
   }>;
   performance_metrics: {
     best_performing_time: string;

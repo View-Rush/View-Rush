@@ -41,6 +41,7 @@ export interface YouTubeVideo {
     commentCount: string;
   };
   publishedAt: string;
+  privacyStatus?: string;
 }
 
 export interface TokenResponse {
@@ -209,9 +210,9 @@ export class YouTubeApiClient {
 
       const videoIds = searchResponse.items.map((item: any) => item.id.videoId).join(',');
 
-      // Then get detailed video information
+      // Then get detailed video information, including privacy status
       const videosResponse = await this.makeAuthenticatedRequest(
-        `/videos?part=snippet,statistics&id=${videoIds}`,
+        `/videos?part=snippet,statistics,status&id=${videoIds}`,
         accessToken
       );
 
@@ -226,6 +227,7 @@ export class YouTubeApiClient {
           commentCount: item.statistics.commentCount || '0',
         },
         publishedAt: item.snippet.publishedAt,
+        privacyStatus: item.status?.privacyStatus,
       }));
 
       logger.debug('YouTubeAPI', 'Videos retrieved', { count: videos.length });
