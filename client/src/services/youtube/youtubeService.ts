@@ -10,6 +10,7 @@ export interface ChannelAnalytics {
   view_count: number;
   video_count: number;
   recent_videos: YouTubeVideo[];
+  private_unlisted_videos?: YouTubeVideo[];
   performance_metrics: {
     average_views_per_video: number;
     engagement_rate: number;
