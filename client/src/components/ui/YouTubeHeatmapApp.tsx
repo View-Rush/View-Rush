@@ -2,6 +2,12 @@
 import React, { useRef } from 'react';
 import { useState } from 'react';
 import { Video, Loader2, ArrowLeft, UploadCloud } from 'lucide-react';
+import { apiService } from '@/services/api';
+
+type PredictionResponse = {
+  heatmap: number[][];
+  topThree: { dayIdx: number; hourIdx: number; score: number }[];
+};
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -10,11 +16,18 @@ import { youtubeApiClient } from '@/services/youtube/apiClient';
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
-  // Color function for heatmap
-  const getColor = (score: number) => {
+  // Color function for heatmap with min-max normalization
+  const getColor = (score: number, min: number, max: number) => {
+    // Normalize score between min and max
+    let norm = 0;
+    if (max > min) {
+      norm = (score - min) / (max - min);
+    }
+    // Clamp between 0 and 1
+    norm = Math.max(0, Math.min(1, norm));
     const red = 255;
-    const green = Math.floor(204 - 204 * score);
-    const blue = Math.floor(204 - 204 * score);
+    const green = Math.floor(204 - 204 * norm);
+    const blue = Math.floor(204 - 204 * norm);
     return `rgb(${red}, ${green}, ${blue})`;
   };
 
@@ -82,31 +95,18 @@ export default function YouTubeHeatmapApp() {
   // Unified predict handler
   const handlePredict = async () => {
     setLoading(true);
-    let payload;
-    if (mode === 'link') {
-      payload = autoDetails;
-    } else {
-      payload = manualDetails;
+    let payload = mode === 'link' ? autoDetails : manualDetails;
+    try {
+      // Call FastAPI backend
+      const response = await apiService.getPredictions(payload) as PredictionResponse;
+      setHeatmap(response.heatmap);
+      setTopThree(response.topThree);
+      setStep(2);
+    } catch (error) {
+      // Handle error (show message, etc.)
+      console.error('Prediction failed:', error);
     }
-    // Print payload to console for backend mock
-    console.log('Sending to backend:', payload);
-    // Simulate backend API call
-    await new Promise(res => setTimeout(res, 1200));
-    // Mocked heatmap response
-    const mockHeatmap: number[][] = Array.from({ length: 7 }, () =>
-      Array.from({ length: 24 }, () => Math.random())
-    );
-    const sortedScores: { dayIdx: number; hourIdx: number; score: number }[] = [];
-    mockHeatmap.forEach((row, dayIdx) => {
-      row.forEach((score, hourIdx) => {
-        sortedScores.push({ dayIdx, hourIdx, score });
-      });
-    });
-    sortedScores.sort((a, b) => b.score - a.score);
-    setTopThree(sortedScores.slice(0, 3));
-    setHeatmap(mockHeatmap);
     setLoading(false);
-    setStep(2);
   };
 
 
@@ -275,25 +275,33 @@ export default function YouTubeHeatmapApp() {
                 </button>
                 <h2 className="text-xl font-semibold mb-6 text-center text-red-400">Predicted Weekly Heatmap</h2>
                 <div className="inline-block">
-                  <div className="grid grid-cols-[80px_repeat(24,1fr)] gap-1 text-xs">
-                    <div></div>
-                    {hours.map((hour) => (
-                      <div key={hour} className="text-center text-zinc-400">{hour}</div>
-                    ))}
-                    {heatmap.map((row: number[], dayIdx: number) => (
-                      <React.Fragment key={dayIdx}>
-                        <div className="flex items-center justify-center text-zinc-300 font-medium">{days[dayIdx]}</div>
-                        {row.map((score: number, hourIdx: number) => (
-                          <div
-                            key={hourIdx}
-                            className="w-6 h-8 rounded-sm cursor-pointer transition-transform hover:scale-110"
-                            style={{ backgroundColor: getColor(score) }}
-                            title={`${days[dayIdx]}, ${hourIdx}:00 → ${(score * 100).toFixed(1)}% predicted engagement`}
-                          ></div>
+                  {(() => {
+                    // Flatten heatmap to get min and max
+                    const flat = heatmap.flat();
+                    const min = Math.min(...flat);
+                    const max = Math.max(...flat);
+                    return (
+                      <div className="grid grid-cols-[80px_repeat(24,1fr)] gap-1 text-xs">
+                        <div></div>
+                        {hours.map((hour) => (
+                          <div key={hour} className="text-center text-zinc-400">{hour}</div>
                         ))}
-                      </React.Fragment>
-                    ))}
-                  </div>
+                        {heatmap.map((row: number[], dayIdx: number) => (
+                          <React.Fragment key={dayIdx}>
+                            <div className="flex items-center justify-center text-zinc-300 font-medium">{days[dayIdx]}</div>
+                            {row.map((score: number, hourIdx: number) => (
+                              <div
+                                key={hourIdx}
+                                className="w-6 h-8 rounded-sm cursor-pointer transition-transform hover:scale-110"
+                                style={{ backgroundColor: getColor(score, min, max) }}
+                                title={`${days[dayIdx]}, ${hourIdx}:00 → ${(score * 100).toFixed(1)}% predicted engagement`}
+                              ></div>
+                            ))}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className="mt-6 text-center text-zinc-400 text-sm">
                   <p>Deeper red = higher predicted engagement</p>
