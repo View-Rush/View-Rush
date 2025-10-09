@@ -3,6 +3,7 @@ import React, { useRef } from 'react';
 import { useState } from 'react';
 import { Video, Loader2, ArrowLeft, UploadCloud } from 'lucide-react';
 import { apiService } from '@/services/api';
+import { supabase } from '@/integrations/supabase/client';
 
 type PredictionResponse = {
   heatmap: number[][];
@@ -95,7 +96,31 @@ export default function YouTubeHeatmapApp() {
   // Unified predict handler
   const handlePredict = async () => {
     setLoading(true);
-    let payload = mode === 'link' ? autoDetails : manualDetails;
+    let payload = mode === 'link' ? autoDetails : { ...manualDetails };
+    // Remove thumbnailFile from payload in manual mode
+    if (mode === 'manual' && 'thumbnailFile' in payload) {
+      delete (payload as any).thumbnailFile;
+    }
+    // If manual mode and thumbnailFile is present, upload to Supabase and get URL
+    if (mode === 'manual' && manualDetails.thumbnailFile) {
+      try {
+        const file = manualDetails.thumbnailFile;
+        const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+        const { data, error } = await supabase.storage.from('thumbnails').upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+        if (error) throw error;
+        // Get public URL from 'thumbnails' bucket
+        const { data: publicUrlData } = supabase.storage.from('thumbnails').getPublicUrl(fileName);
+        payload = { ...payload, thumbnail: publicUrlData.publicUrl };
+      } catch (err) {
+        console.error('Thumbnail upload failed:', err);
+        setLoading(false);
+        return;
+      }
+    }
     try {
       // Call FastAPI backend
       const response = await apiService.getPredictions(payload) as PredictionResponse;
