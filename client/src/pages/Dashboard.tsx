@@ -246,6 +246,48 @@ const Dashboard = () => {
         <TabsContent value="predictions" className="space-y-6">
           <YouTubeHeatmapApp />
         </TabsContent>
+
+        {/* Settings Tab */}
+        <TabsContent value="settings" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Dashboard Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium">Auto-refresh data</h4>
+                  <p className="text-sm text-muted-foreground">Automatically refresh dashboard data every 5 minutes</p>
+                </div>
+                <Button variant="outline" size="sm">Configure</Button>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium">Export data</h4>
+                  <p className="text-sm text-muted-foreground">Download your analytics data as CSV</p>
+                </div>
+                <Button variant="outline" size="sm">Export</Button>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium">Clear cache</h4>
+                  <p className="text-sm text-muted-foreground">Clear all cached analytics data</p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    // Clear cache and refresh data
+                    handleRefreshData();
+                    toast({ title: "Cache cleared", description: "All cached data has been cleared and refreshed." });
+                  }}
+                >
+                  Clear
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
       </div>
     </div>
