@@ -85,7 +85,7 @@ export function useChannelConnections() {
         }
       }
     } catch (error) {
-      console.error('🔥 Error loading connections:', error);
+      console.error('Error loading connections:', error);
       toast({
         title: "Error",
         description: "Failed to load channel connections.",
@@ -163,7 +163,7 @@ export function useChannelConnections() {
   };
 
   useEffect(() => {
-    console.log('🔄 useChannelConnections useEffect triggered - User:', user?.email, 'Auth loading:', authLoading);
+    console.log('useChannelConnections useEffect triggered - User:', user?.email, 'Auth loading:', authLoading);
     
     // Reset connecting state on mount in case we returned from OAuth redirect
     setConnecting(false);

@@ -8,12 +8,12 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: any }>;
-  updatePassword: (newPassword: string) => Promise<{ error: any }>;
-  updateProfile: (updates: any) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ data: any; error: any }>;
+  signUp: (email: string, password: string, displayName?: string) => Promise<{ data: any; error: any }>;
+  signOut: () => Promise<{ error: any }>;
+  resetPassword: (email: string) => Promise<{ data: any; error: any }>;
+  updatePassword: (newPassword: string) => Promise<{ data: any; error: any }>;
+  updateProfile: (updates: any) => Promise<{ data: any; error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -146,8 +146,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [navigate]);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await authService.signIn({ email, password });
-    return { error };
+    const { user, session, error } = await authService.signIn({ email, password });
+    
+    if (!error && user && session) {
+      setUser(user);
+      setSession(session);
+    }
+    
+    return { data: error ? { user: null, session: null } : { user, session }, error };
   };
 
   const signUp = async (email: string, password: string, displayName?: string) => {
@@ -157,8 +163,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       displayName,
     };
     
-    const { error } = await authService.signUp(signUpData);
-    return { error };
+    const { user, error } = await authService.signUp(signUpData);
+    return { data: error ? null : { user }, error };
   };
 
   const signOut = async () => {
@@ -294,20 +300,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       // Emergency navigation only if auth state listener fails
       navigate('/', { replace: true });
+      return { error };
     }
+    
+    return { error: null };
   };
 
   const resetPassword = async (email: string) => {
-    return await authService.resetPassword({ email });
+    const { error } = await authService.resetPassword({ email });
+    return { data: error ? null : {}, error };
   };
 
   const updatePassword = async (newPassword: string) => {
-    return await authService.updatePassword({ password: '', newPassword });
+    const response = await authService.updatePassword({ password: '', newPassword });
+    console.log('Update password response:', response);
+    return { data: response.error ? null : {}, error: response.error };
   };
 
   const updateProfile = async (updates: any) => {
-    const { error } = await authService.updateProfile(updates);
-    return { error };
+    const response = await authService.updateProfile(updates);
+    return { data: response.error ? null : { user: response.user || null }, error: response.error };
   };
 
   const value = {

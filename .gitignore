@@ -209,6 +209,14 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 
+# Test Reports and Coverage
+client/testing/reports/
+client/testing/coverage/
+coverage/
+test-results/
+junit.xml
+test-report.html
+
 
 # Logs
 logs
