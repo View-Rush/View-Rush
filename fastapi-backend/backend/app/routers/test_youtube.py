@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 import requests
 from app.config import YOUTUBE_API_KEY
 
-print("Loaded API Key:", YOUTUBE_API_KEY)
+# print("Loaded API Key:", YOUTUBE_API_KEY)  # Removed to avoid logging sensitive information
 
 router = APIRouter(prefix="/test", tags=["Test"])
 
