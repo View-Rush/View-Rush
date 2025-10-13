@@ -33,6 +33,16 @@ import { youtubeApiClient } from '@/services/youtube/apiClient';
   };
 
 
+// Utility function to check if URL is safe http(s) image link
+function isSafeHttpUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return (parsed.protocol === 'http:' || parsed.protocol === 'https:');
+  } catch (e) {
+    return false;
+  }
+}
+
 export default function YouTubeHeatmapApp() {
   const [step, setStep] = useState(1);
   const [mode, setMode] = useState<'link' | 'manual'>('link');
@@ -265,7 +275,13 @@ export default function YouTubeHeatmapApp() {
                     {(manualDetails.thumbnail || manualDetails.thumbnailFile) && (
                       <div className="mt-2">
                         <img
-                          src={manualDetails.thumbnailFile ? URL.createObjectURL(manualDetails.thumbnailFile) : manualDetails.thumbnail}
+                          src={
+                            manualDetails.thumbnailFile
+                              ? URL.createObjectURL(manualDetails.thumbnailFile)
+                              : isSafeHttpUrl(manualDetails.thumbnail)
+                                ? manualDetails.thumbnail
+                                : undefined
+                          }
                           alt="Thumbnail Preview"
                           className="w-full h-40 object-cover rounded-lg border"
                         />
