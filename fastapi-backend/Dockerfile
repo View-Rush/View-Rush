@@ -35,7 +35,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY backend/ ./backend/
 
 # Copy environment file if exists (optional)
-# COPY backend/.env ./backend/.env
+COPY backend/.env ./backend/.env
 
 # Create a non-root user for security
 RUN useradd --create-home --shell /bin/bash appuser && \
