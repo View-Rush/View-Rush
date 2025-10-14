@@ -1,0 +1,57 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    "Content-Type" = "application/javascript"
+
+[[headers]]
+  for = "/*.jsx"
+  [headers.values]
+    "Content-Type" = "application/javascript"
+
+[[headers]]
+  for = "/*.ts"
+  [headers.values]
+    "Content-Type" = "application/typescript"
+
+[[headers]]
+  for = "/*.tsx"
+  [headers.values]
+    "Content-Type" = "application/typescript"
+
+[[headers]]
+  for = "/*.mjs"
+  [headers.values]
+    "Content-Type" = "application/javascript"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    "Content-Type" = "text/css"
+
+[[headers]]
+  for = "/assets/*.css"
+  [headers.values]
+    "Content-Type" = "text/css"
+
+# Single page app configuration
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    "X-Frame-Options" = "DENY"
+    "X-XSS-Protection" = "1; mode=block"
+    "X-Content-Type-Options" = "nosniff"
+
+# Secrets scanning configuration
+[build.environment]
+  SECRETS_SCAN_OMIT_PATHS = "dist/*, supabase/config.toml"
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_PROJECT_ID,VITE_SUPABASE_PUBLISHABLE_KEY,VITE_SUPABASE_URL,VITE_YOUTUBE_CLIENT_ID,VITE_YOUTUBE_CLIENT_SECRET,VITE_YOUTUBE_REDIRECT_URI"
