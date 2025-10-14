@@ -32,9 +32,12 @@ RUN pip install --no-cache-dir --upgrade pip && \
     rm -rf /tmp/* /root/.cache
 
 # Copy the application code
-COPY backend/ ./backend/
+COPY backend/app/ ./backend/app/
 
-# Copy environment file if exists (optional)
+# Copy model files to the backend directory where code expects them
+COPY backend/*.pth ./backend/
+
+# Copy environment file
 COPY backend/.env ./backend/.env
 
 # Create a non-root user for security
