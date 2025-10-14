@@ -8,14 +8,11 @@ const AuthCallback = () => {
 
   useEffect(() => {
     const handleAuthCallback = async () => {
-      console.log('Handling Supabase auth callback...');
-      
       try {
         // Handle the auth callback
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Auth callback error:', error);
           toast({
             title: "Authentication Error",
             description: error.message,
@@ -26,18 +23,15 @@ const AuthCallback = () => {
         }
 
         if (data.session) {
-          console.log('Authentication successful:', data.session.user.email);
           toast({
             title: "Welcome!",
             description: "You have been successfully signed in.",
           });
           navigate('/dashboard');
         } else {
-          console.log('No session found after callback');
           navigate('/auth');
         }
       } catch (error) {
-        console.error('Auth callback failed:', error);
         toast({
           title: "Authentication Failed",
           description: "There was an error processing your authentication.",

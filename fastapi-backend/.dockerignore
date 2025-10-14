@@ -1,0 +1,13 @@
+# Add this to backend/.gitignore if not already present
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+*.log
+.DS_Store
+*.pth
+mlruns/
