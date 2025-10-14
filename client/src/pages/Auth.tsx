@@ -130,7 +130,6 @@ const Auth = () => {
         }
       }
     } catch (error) {
-      console.error("Signup error:", error);
     } finally {
       setIsSubmitting(false);
       setShowYouTubeConnect(false);

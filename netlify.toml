@@ -1,7 +1,6 @@
 [build]
-  base = "client"
-  command = "npm install && npm run build"
-  publish = "client/dist"
+  command = "npm run build"
+  publish = "dist"
 
 [[headers]]
   for = "/*.js"
@@ -52,8 +51,7 @@
     "X-XSS-Protection" = "1; mode=block"
     "X-Content-Type-Options" = "nosniff"
 
-# Build environment configuration
+# Secrets scanning configuration
 [build.environment]
-  NODE_VERSION = "20"
   SECRETS_SCAN_OMIT_PATHS = "dist/*, supabase/config.toml"
   SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_PROJECT_ID,VITE_SUPABASE_PUBLISHABLE_KEY,VITE_SUPABASE_URL,VITE_YOUTUBE_CLIENT_ID,VITE_YOUTUBE_CLIENT_SECRET,VITE_YOUTUBE_REDIRECT_URI"

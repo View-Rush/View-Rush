@@ -6,7 +6,9 @@ import path from "path";
 export default defineConfig(({}) => ({
   server: {
     host: "::", // Listen on all IPv4 and IPv6 addresses
+    cors: true,
     port: 8080,
+    strictPort: true, // Exit if port is already in use
   },
   plugins: [react()],
   resolve: {
@@ -14,7 +16,16 @@ export default defineConfig(({}) => ({
       "@": path.resolve(__dirname, "./src"),
       "@testing": path.resolve(__dirname, "./testing"),
     },
+  },  
+  optimizeDeps: {
+    esbuildOptions: {
+      loader: {
+        '.js': 'jsx',
+        '.ts': 'tsx',
+      },
+    },
   },
+
   test: {
     globals: true, // use global variables like describe, it, expect (removes repetitive imports)
     environment: "jsdom",
