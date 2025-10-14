@@ -10,6 +10,7 @@ export interface ChannelAnalytics {
   view_count: number;
   video_count: number;
   recent_videos: YouTubeVideo[];
+  private_unlisted_videos?: YouTubeVideo[];
   performance_metrics: {
     average_views_per_video: number;
     engagement_rate: number;
@@ -260,14 +261,32 @@ export class YouTubeService {
       // Fetch recent videos if connection is active
       if (connection.is_active) {
         try {
-          const tokens = await youtubeDatabaseService.getConnectionTokens(connection.id);
+          let tokens = await youtubeDatabaseService.getConnectionTokens(connection.id);
+          // Check if token is expired and refresh if needed
+          if (connection.token_expires_at && new Date(connection.token_expires_at) <= new Date()) {
+            logger.warn('YouTubeService', 'Access token expired, attempting refresh', { connectionId: connection.id });
+            if (tokens?.refresh_token) {
+              const refreshed = await youtubeApiClient.refreshAccessToken(
+                tokens.refresh_token,
+                import.meta.env.VITE_YOUTUBE_CLIENT_ID,
+                import.meta.env.VITE_YOUTUBE_CLIENT_SECRET
+              );
+              tokens.access_token = refreshed.access_token;
+              // Update token_expires_at in DB (optional, for accuracy)
+              // You may want to call a DB update here
+            } else {
+              throw new Error('No refresh token available for expired access token');
+            }
+          }
           if (tokens?.access_token) {
-            analytics.recent_videos = await youtubeApiClient.getChannelVideos(
+            const allVideos = await youtubeApiClient.getChannelVideos(
               tokens.access_token,
               connection.channel_id,
-              10
+              20 // fetch more for better filtering
             );
-            
+            // Separate public and private/unlisted videos
+            analytics.recent_videos = allVideos.filter(v => v.privacyStatus === 'public');
+            analytics.private_unlisted_videos = allVideos.filter(v => v.privacyStatus === 'private' || v.privacyStatus === 'unlisted');
             analytics.performance_metrics = this.calculatePerformanceMetrics(analytics.recent_videos);
           }
         } catch (error) {

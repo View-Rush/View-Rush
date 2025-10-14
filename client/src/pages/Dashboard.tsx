@@ -19,15 +19,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { ChannelConnectionsList } from '@/components/ui/channel-connections-list';
 import Header from '@/components/layout/Header';
 import { useDashboard } from '@/contexts/DashboardContext';
+import YouTubeHeatmapApp from '@/components/ui/YouTubeHeatmapApp';
 
 const Dashboard = () => {
+
   const { user, loading: authLoading, signOut } = useAuth();
   const [selectedTab, setSelectedTab] = useState('overview');
-  
+
   // Use dashboard context for all data management
   const {
     analyticsData,
-    predictionsData,
     loading,
     hasConnections,
     channelConnections,
@@ -39,6 +40,8 @@ const Dashboard = () => {
     refreshConnections,
   } = useDashboard();
 
+
+  console.log('Recent videos:', analyticsData?.recent_videos);
   const handleRefreshData = async () => {
     if (!hasConnections) {
       toast({
@@ -241,70 +244,7 @@ const Dashboard = () => {
 
         {/* Predictions Tab */}
         <TabsContent value="predictions" className="space-y-6">
-          {predictionsData ? (
-            <>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    Optimal Publishing Times
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {predictionsData.optimal_publish_times.map((prediction, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h4 className="font-medium">{prediction.day} at {prediction.time}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Confidence: {(prediction.confidence * 100).toFixed(0)}%
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-semibold text-primary">
-                            {prediction.predicted_views.toLocaleString()} views
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Lightbulb className="h-5 w-5" />
-                    Content Recommendations
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {predictionsData.content_recommendations.map((rec, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h4 className="font-medium">{rec.category}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Duration: {rec.suggested_duration}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-semibold text-primary">
-                            {(rec.predicted_engagement * 100).toFixed(1)}% engagement
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <Target className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-center text-muted-foreground">Connect a channel to get AI predictions</p>
-            </div>
-          )}
+          <YouTubeHeatmapApp />
         </TabsContent>
 
         {/* Settings Tab */}
