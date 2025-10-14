@@ -71,9 +71,14 @@ NUM_SLOTS = 168
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# Get the path to the model file (works both locally and in Docker)
+import os
+from pathlib import Path
+model_path = Path(__file__).parent.parent.parent / "bidirectional_fusion_model.pth"
+
 # Load trained model weights
 model = BiCrossAttentionFusionModel(VIDEO_DIM, USER_DIM, HIDDEN_DIM, NUM_HEADS, NUM_SLOTS)
-model.load_state_dict(torch.load("bidirectional_fusion_model.pth", map_location=device))
+model.load_state_dict(torch.load(str(model_path), map_location=device))
 model.to(device)
 model.eval()
 

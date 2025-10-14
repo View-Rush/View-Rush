@@ -99,8 +99,13 @@ NUM_HEADS = 4
 NUM_SLOTS = 168
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# Get the path to the model file (works both locally and in Docker)
+import os
+from pathlib import Path
+model_path = Path(__file__).parent.parent.parent / "fusion_model.pth"
+
 model = FusionModel(embed_dim=EMBED_DIM, num_heads=NUM_HEADS, num_slots=NUM_SLOTS)
-model.load_state_dict(torch.load("fusion_model.pth", map_location=device))
+model.load_state_dict(torch.load(str(model_path), map_location=device))
 model.to(device)
 model.eval()
 
