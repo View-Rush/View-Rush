@@ -34,8 +34,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy the application code
 COPY backend/app/ ./backend/app/
 
-# Copy model files to the backend directory where code expects them
-COPY backend/*.pth ./backend/
+# Copy model files explicitly to the backend directory
+COPY backend/fusion_model.pth ./backend/fusion_model.pth
+COPY backend/bidirectional_fusion_model.pth ./backend/bidirectional_fusion_model.pth
 
 # Copy environment file
 COPY backend/.env ./backend/.env
