@@ -6,7 +6,6 @@ import transformers
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
 from typing import Optional, Dict, Any
-from wikipedia import page, DisambiguationError, PageError
 # Lazy-loaded global model holders
 _models = {
     "ner": None,
