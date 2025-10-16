@@ -1,0 +1,24 @@
+# SSL Certificates
+nginx/ssl/*.pem
+certbot/
+
+# Environment files
+backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/pyvenv.cfg
+.venv/
+
+# Models (large files)
+*.pth
+
+# Logs
+*.log
+
+# Docker
+.dockerignore
