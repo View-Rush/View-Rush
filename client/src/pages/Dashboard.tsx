@@ -40,6 +40,8 @@ const Dashboard = () => {
     refreshConnections,
   } = useDashboard();
 
+
+  console.log('Recent videos:', analyticsData?.recent_videos);
   const handleRefreshData = async () => {
     if (!hasConnections) {
       toast({
