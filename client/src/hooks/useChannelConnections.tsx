@@ -21,17 +21,12 @@ export function useChannelConnections() {
 
   const loadConnections = async (forceRefresh = false) => {
     try {
-      console.log('Loading connections...');
-      console.log('Auth state - User:', user?.email, 'Auth loading:', authLoading);
-      
       // Don't proceed if auth is still loading or user is not authenticated
       if (authLoading) {
-        console.log('Auth still loading, skipping connection load');
         return;
       }
       
       if (!user) {
-        console.log('No authenticated user, clearing connections');
         setConnections([]);
         setLoading(false);
         return;
@@ -40,14 +35,12 @@ export function useChannelConnections() {
       // Prevent redundant calls within 3 seconds unless forced
       const now = Date.now();
       if (!forceRefresh && (now - lastLoadTime) < 3000) {
-        console.log('Skipping connection load, recent data available');
         setLoading(false);
         return;
       }
       
       // Check if connection process is in progress and block if so
       if (connectionStateManager.isConnecting()) {
-        console.log('loadConnections() blocked - connection in progress');
         setLoading(false);
         return;
       }
@@ -68,12 +61,10 @@ export function useChannelConnections() {
           timeoutPromise
         ]);
         
-        console.log('Connections loaded:', userConnections.length);
         setConnections(userConnections);
         setLastLoadTime(Date.now()); // Update cache timestamp
       } catch (timeoutError) {
         if (timeoutError instanceof Error && timeoutError.message.includes('timeout')) {
-          console.warn('Channel connections loading timed out after 2 seconds');
           setConnections([]); // Set empty array on timeout
           toast({
             title: "Loading timeout",
@@ -85,43 +76,35 @@ export function useChannelConnections() {
         }
       }
     } catch (error) {
-      console.error('Error loading connections:', error);
       toast({
         title: "Error",
         description: "Failed to load channel connections.",
         variant: "destructive",
       });
     } finally {
-      console.log('Setting loading to false');
       setLoading(false);
     }
   };
 
   const connectChannel = async () => {
     try {
-      console.log('Connect channel button clicked');
       setConnecting(true);
       
       const connectionTimeout = setTimeout(() => {
-        console.log('Connection timeout reached, resetting connecting state');
         setConnecting(false);
       }, 5000);
 
-      console.log('Calling youtubeService.connectAccount()');
       await youtubeService.connectAccount();
-      console.log('youtubeService.connectAccount() completed');
       
       // Clear the timeout if we reach this point successfully
       clearTimeout(connectionTimeout);
     } catch (error) {
-      console.error('YouTube connection error:', error);
       toast({
         title: "Connection Failed",
         description: "Failed to connect YouTube channel. Please try again.",
         variant: "destructive",
       });
     } finally {
-      console.log('Setting connecting to false');
       setConnecting(false);
     }
   };
@@ -135,7 +118,6 @@ export function useChannelConnections() {
         description: "YouTube channel has been disconnected successfully.",
       });
     } catch (error) {
-      console.error('Error disconnecting channel:', error);
       toast({
         title: "Disconnection Failed",
         description: "Failed to disconnect channel. Please try again.",

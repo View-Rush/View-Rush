@@ -254,7 +254,6 @@ export class YouTubeDatabaseService {
         throw errorHandler.createAuthError('User not authenticated');
       }
 
-      console.log("About database disconnect for connection:", connectionId);
       const { error } = await supabase
         .from('channel_connections')
         .update({ 

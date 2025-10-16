@@ -121,10 +121,6 @@ const Auth = () => {
 
       if (!result.error) {
         // Account created successfully, redirect will happen via useAuth
-        console.log(
-          "Account created successfully",
-          connected ? "with YouTube connected" : "without YouTube"
-        );
         if (connected) {
           setCompletedSteps((prev) => [...prev, "youtube"]);
         }
@@ -139,7 +135,7 @@ const Auth = () => {
   };
 
   const handleYouTubeConnectSkip = () => {
-    console.log("User skipped YouTube connection");
+    // User chose to skip YouTube connection
   };
 
   const handleBackToAccountDetails = () => {

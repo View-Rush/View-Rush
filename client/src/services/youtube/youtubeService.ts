@@ -73,7 +73,6 @@ export class YouTubeService {
     
     try {
       const status = await youtubeDatabaseService.getConnectionStatus();
-      console.log('Connection status:', status);
       return status;
 
     } catch (error) {

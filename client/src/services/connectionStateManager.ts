@@ -20,7 +20,6 @@ class ConnectionStateManager {
       connectionInProgress: connectionId || 'unknown'
     };
     this.notifyListeners();
-    console.log('Connection state: STARTED -', connectionId);
   }
 
   endConnection() {
@@ -29,7 +28,6 @@ class ConnectionStateManager {
       connectionInProgress: null
     };
     this.notifyListeners();
-    console.log('Connection state: ENDED');
   }
 
   isConnecting(): boolean {
