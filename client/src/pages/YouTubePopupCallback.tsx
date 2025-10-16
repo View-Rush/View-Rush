@@ -46,8 +46,6 @@ export default function YouTubePopupCallback() {
 
         window.close();
       } catch (error) {
-        console.error('Popup callback error:', error);
-        
         // Send error to parent window
         window.opener?.postMessage({
           type: 'OAUTH_ERROR',

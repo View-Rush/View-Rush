@@ -96,8 +96,6 @@ export class SecureTokenService {
         throw new Error('Connection ID is required');
       }
 
-      console.log('Retrieving tokens for connection:', connectionId);
-
       // Get tokens from the encrypted_channel_tokens table
       const { data, error } = await supabase.rpc('get_decrypted_tokens', {
         p_connection_id: connectionId

@@ -43,6 +43,12 @@
   to = "/index.html"
   status = 200
 
+[[redirects]]
+  from = "/api/*"
+  to = "http://34.14.133.159:8080/api/:splat"
+  status = 200
+  force = true
+
 # Security headers
 [[headers]]
   for = "/*"

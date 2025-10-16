@@ -99,7 +99,7 @@ const Settings = () => {
         setPreferences({ ...preferences, ...savedPreferences });
       }
     } catch (error) {
-      console.error('Error loading preferences:', error);
+      // Error loading preferences - will use defaults
     }
   };
 
@@ -117,7 +117,6 @@ const Settings = () => {
         description: "Your profile has been successfully updated.",
       });
     } catch (error) {
-      console.error('Error updating profile:', error);
       toast({
         title: "Update Failed",
         description: "Failed to update profile. Please try again.",
@@ -166,7 +165,6 @@ const Settings = () => {
 
       if (error) throw error;
     } catch (error) {
-      console.error('Error saving preferences:', error);
       toast({
         title: "Save Failed",
         description: "Failed to save preferences.",
@@ -199,7 +197,6 @@ const Settings = () => {
         description: "Your account has been deleted successfully.",
       });
     } catch (error) {
-      console.error('Error deleting account:', error);
       toast({
         title: "Deletion Failed",
         description: "Failed to delete account. Please contact support.",

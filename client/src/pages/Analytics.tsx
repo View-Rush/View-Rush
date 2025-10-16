@@ -55,7 +55,6 @@ export default function Analytics() {
         setSelectedChannel(userConnections[0].id);
       }
     } catch (error) {
-      console.error('Error loading connections:', error);
       toast({
         title: "Error",
         description: "Failed to load channel connections.",
@@ -74,7 +73,6 @@ export default function Analytics() {
       const channelAnalytics = await youtubeService.getChannelAnalytics(selectedChannel);
       setAnalytics(channelAnalytics);
     } catch (error) {
-      console.error('Error loading analytics:', error);
       toast({
         title: "Error",
         description: "Failed to load analytics data.",
@@ -95,7 +93,6 @@ export default function Analytics() {
         description: "Analytics data refreshed successfully.",
       });
     } catch (error) {
-      console.error('Error refreshing analytics:', error);
       toast({
         title: "Error",
         description: "Failed to refresh analytics data.",

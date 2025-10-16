@@ -84,7 +84,6 @@ const Trending = () => {
   const loadTrendingVideos = async () => {
     try {
       setLoading(true);
-      console.log('Loading trending videos...', { country: selectedCountry, category: selectedCategory });
       
       // Check if API key is configured
       if (!import.meta.env.VITE_YOUTUBE_API_KEY) {
@@ -96,7 +95,6 @@ const Trending = () => {
         selectedCategory === "0" ? undefined : selectedCategory
       );
       
-      console.log('Trending videos loaded:', videos.length);
       setTrendingVideos(videos);
       
       if (videos.length === 0) {
@@ -106,8 +104,6 @@ const Trending = () => {
         });
       }
     } catch (error) {
-      console.error('Error loading trending videos:', error);
-      
       let errorMessage = "Failed to load trending videos. Please try again.";
       if (error instanceof Error) {
         errorMessage = error.message;
@@ -132,7 +128,6 @@ const Trending = () => {
         description: "Trending videos refreshed successfully.",
       });
     } catch (error) {
-      console.error('Error refreshing videos:', error);
       toast({
         title: "Error",
         description: "Failed to refresh trending videos.",
