@@ -1,6 +1,6 @@
 # View-Rush
 
-The platform for novice YouTube creators to gain insights on when to publish their video to reach maximum popularity.
+The one-stop platform for novice YouTube creators to gain insights on when to publish their videos to reach maximum popularity.
 
 ## Overview
 
@@ -18,6 +18,7 @@ View-Rush helps new and aspiring YouTube creators analyze their channel data to 
 - **JavaScript** / **TypeScript** – Frontend logic and UI
 - **HTML** – Markup and layout
 - **Python** – Backend analytics
+-  **FastAPI** - API server
 
 ## Getting Started
 
@@ -28,12 +29,20 @@ View-Rush helps new and aspiring YouTube creators analyze their channel data to 
 
 2. **Install dependencies:**
    ```bash
+   cd client
    npm install
    ```
 
 3. **Run the application:**
    ```bash
    npm start
+   ```
+4. **Setting up the server**
+   ```bash
+   cd ../fastapi-backend
+   pip install -r requirements.txt
+   cd backend
+   uvicorn app.main:app
    ```
 
 ## Contributing
