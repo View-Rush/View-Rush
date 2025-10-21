@@ -1,7 +1,7 @@
 
 import React, { useRef } from 'react';
 import { useState } from 'react';
-import { Video, Loader2, ArrowLeft, UploadCloud } from 'lucide-react';
+import { Loader2, ArrowLeft, UploadCloud } from 'lucide-react';
 import { apiService } from '@/services/api';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -12,7 +12,6 @@ type PredictionResponse = {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { youtubeApiClient } from '@/services/youtube/apiClient';
   // Days and hours for heatmap
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const hours = Array.from({ length: 24 }, (_, i) => i);
@@ -82,9 +81,17 @@ export default function YouTubeHeatmapApp() {
     try {
       // Use public API key for demo (replace with your own key)
       const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
+      if (!apiKey) {
+        console.error('YouTube API key not configured');
+        setAutoDetails({ title: '', description: '', tags: '', thumbnail: '', channel: '', videoId: '' });
+        setAutoLoading(false);
+        return;
+      }
       const videoRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`);
       const videoData = await videoRes.json();
       if (!videoData.items || videoData.items.length === 0) {
+        console.error('Video not found or invalid video ID');
+        setAutoDetails({ title: '', description: '', tags: '', thumbnail: '', channel: '', videoId: '' });
         setAutoLoading(false);
         return;
       }
@@ -98,6 +105,7 @@ export default function YouTubeHeatmapApp() {
         videoId,
       });
     } catch (err) {
+      console.error('Failed to fetch video details:', err);
       setAutoDetails({ title: '', description: '', tags: '', thumbnail: '', channel: '', videoId: '' });
     }
     setAutoLoading(false);
@@ -106,6 +114,7 @@ export default function YouTubeHeatmapApp() {
   // Unified predict handler
   const handlePredict = async () => {
     setLoading(true);
+    setStep(2); // Move to step 2 to show loading state
     let payload = mode === 'link' ? autoDetails : { ...manualDetails };
     // Remove thumbnailFile from payload in manual mode
     if (mode === 'manual' && 'thumbnailFile' in payload) {
@@ -117,7 +126,7 @@ export default function YouTubeHeatmapApp() {
         const file = manualDetails.thumbnailFile;
         const fileExt = file.name.split('.').pop();
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-        const { data, error } = await supabase.storage.from('thumbnails').upload(fileName, file, {
+        const { error } = await supabase.storage.from('thumbnails').upload(fileName, file, {
           cacheControl: '3600',
           upsert: false,
         });
@@ -128,6 +137,7 @@ export default function YouTubeHeatmapApp() {
       } catch (err) {
         console.error('Thumbnail upload failed:', err);
         setLoading(false);
+        setStep(1); // Go back to step 1 on error
         return;
       }
     }
@@ -136,10 +146,10 @@ export default function YouTubeHeatmapApp() {
       const response = await apiService.getPredictions(payload) as PredictionResponse;
       setHeatmap(response.heatmap);
       setTopThree(response.topThree);
-      setStep(2);
     } catch (error) {
       // Handle error (show message, etc.)
       console.error('Prediction failed:', error);
+      setStep(1); // Go back to step 1 on error
     }
     setLoading(false);
   };
@@ -179,8 +189,13 @@ export default function YouTubeHeatmapApp() {
                       setYoutubeURL(e.target.value);
                       setAutoDetails({ title: '', description: '', tags: '', thumbnail: '', channel: '', videoId: '' });
                     }}
-                    placeholder="Paste YouTube video link here"
+                    placeholder="Paste YouTube video link here (e.g., https://www.youtube.com/watch?v=...)"
                     className="w-full p-3 rounded-lg border border-input bg-background"
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && e.currentTarget.value.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/)) {
+                        fetchYouTubeDetails(e.currentTarget.value);
+                      }
+                    }}
                     onBlur={e => {
                       if (e.target.value.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/)) {
                         fetchYouTubeDetails(e.target.value);
@@ -193,19 +208,27 @@ export default function YouTubeHeatmapApp() {
                   )}
                   {autoDetails.videoId && !autoLoading && (
                     <div className="rounded-lg border-2 overflow-hidden transition-all shadow-lg">
-                      <img src={autoDetails.thumbnail} alt="Video thumbnail" className="w-full h-40 object-cover bg-muted" />
+                      <img 
+                        src={autoDetails.thumbnail} 
+                        alt="Video thumbnail" 
+                        className="w-full h-40 object-cover bg-muted"
+                        onError={(e) => {
+                          // Fallback if thumbnail fails to load
+                          e.currentTarget.src = `https://img.youtube.com/vi/${autoDetails.videoId}/0.jpg`;
+                        }}
+                      />
                       <div className="p-4">
                         <p className="font-semibold text-sm mb-1">{autoDetails.title}</p>
-                        <p className="text-xs text-zinc-400 mb-1">{autoDetails.description}</p>
-                        <p className="text-xs text-zinc-400 mb-1">Tags: {autoDetails.tags}</p>
-                        <p className="text-xs text-zinc-400">Channel: <a href={autoDetails.channel} target="_blank" rel="noopener noreferrer" className="underline">{autoDetails.channel}</a></p>
+                        <p className="text-xs text-zinc-400 mb-1 line-clamp-2">{autoDetails.description}</p>
+                        <p className="text-xs text-zinc-400 mb-1">Tags: {autoDetails.tags || 'No tags'}</p>
+                        <p className="text-xs text-zinc-400">Channel: <a href={autoDetails.channel} target="_blank" rel="noopener noreferrer" className="underline hover:text-zinc-300">{autoDetails.channel}</a></p>
                       </div>
                     </div>
                   )}
                   <Button
                     onClick={handlePredict}
                     className="w-full"
-                    disabled={!autoDetails.videoId}
+                    disabled={!autoDetails.videoId || autoLoading}
                   >
                     Predict Best Time
                   </Button>
@@ -301,9 +324,12 @@ export default function YouTubeHeatmapApp() {
           )}
           {step === 2 && (
             loading ? (
-              <div className="flex items-center justify-center gap-2 py-8">
-                <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                <span>Predicting best time...</span>
+              <div className="flex flex-col items-center justify-center gap-4 py-12">
+                <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                <div className="text-center space-y-2">
+                  <p className="text-lg font-semibold">Analyzing your video...</p>
+                  <p className="text-sm text-muted-foreground">This may take a few moments</p>
+                </div>
               </div>
             ) : heatmap ? (
               <motion.div
@@ -311,7 +337,7 @@ export default function YouTubeHeatmapApp() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mx-auto w-full max-w-5xl p-8 flex flex-col items-center"
               >
-                <button onClick={() => { setStep(1); setHeatmap(null); }} className="flex items-center text-red-400 mb-4 hover:text-red-500">
+                <button onClick={() => { setStep(1); setHeatmap(null); setLoading(false); }} className="flex items-center text-red-400 mb-4 hover:text-red-500">
                   <ArrowLeft className="w-4 h-4 mr-2" /> Back
                 </button>
                 <h2 className="text-xl font-semibold mb-6 text-center text-red-400">Predicted Weekly Heatmap</h2>
