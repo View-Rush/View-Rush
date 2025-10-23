@@ -119,7 +119,6 @@ export class SecureTokenService {
       };
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       toast({
         title: "Security Error",
         description: "Failed to retrieve tokens securely.",
@@ -197,59 +196,6 @@ export class SecureTokenService {
       return false;
     }
   }
-
-  /**
-   * Get connection information with decrypted tokens (for authorized operations only)
-   */
-  //   static async getConnectionWithTokens(connectionId: string) {
-  //     try {
-  //       const { data, error } = await supabase
-  //         .from('channel_connections_with_tokens')
-  //         .select('*')
-  //         .eq('id', connectionId)
-  //         .single();
-
-  //       if (error) {
-  //         console.error('Error fetching connection with tokens:', error);
-  //         return null;
-  //       }
-
-  //       return data;
-
-  //     } catch (error) {
-  //       console.error('Get connection with tokens error:', error);
-  //       return null;
-  //     }
-  //   }
-
-  //   /**
-  //    * Audit token access for security monitoring
-  //    */
-  //   static async getTokenAccessAudit(connectionId?: string) {
-  //     try {
-  //       let query = supabase
-  //         .from('token_access_audit')
-  //         .select('*')
-  //         .order('timestamp', { ascending: false });
-
-  //       if (connectionId) {
-  //         query = query.eq('connection_id', connectionId);
-  //       }
-
-  //       const { data, error } = await query.limit(100);
-
-  //       if (error) {
-  //         console.error('Error fetching token audit:', error);
-  //         return [];
-  //       }
-
-  //       return data || [];
-
-  //     } catch (error) {
-  //       console.error('Get token audit error:', error);
-  //       return [];
-  //     }
-  //   }
 }
 
 export default SecureTokenService;

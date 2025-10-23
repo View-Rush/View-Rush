@@ -16,7 +16,7 @@ _models = {
 }
 _models_lock = Lock()
 
-# Candidate labels (you can reuse your big list or a smaller curated list)
+# Candidate labels
 CANDIDATE_LABELS = [
     'animation', 'cartoon', '3D', 'short film', 'stop motion',
     'car', 'motorcycle', 'automobile', 'driving', 'vehicles',
@@ -49,9 +49,8 @@ CANDIDATE_LABELS = [
     'series', 'tv', 'performance', 'trailer', 'preview', 'teaser',
     'clip', 'announcement']
 
-# -------------------------
 # Helper utilities
-# -------------------------
+
 
 def _lazy_load_models():
     """
@@ -203,4 +202,3 @@ def video_to_weighted_embedding(video_struct: Dict[str, Any], global_max_views: 
     view_count = float(video_struct.get("view_count", 0) or 0)
     weight = view_count / max(1.0, global_max_views)
     return embs * weight
-

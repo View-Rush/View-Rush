@@ -31,7 +31,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     find /usr/local/lib/python3.12/site-packages -type d -name "test" -exec rm -rf {} + 2>/dev/null || true && \
     rm -rf /tmp/* /root/.cache
 
-# Copy the application code
+# Copy the application code including middleware
 COPY backend/app/ ./backend/app/
 
 # Copy model files explicitly to the backend directory

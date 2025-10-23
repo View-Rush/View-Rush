@@ -7,7 +7,6 @@ import { DecryptedTokens, SecureTokenService } from '@/services/secureTokenServi
 import { YouTubeChannel, TokenResponse } from './apiClient';
 
 type ChannelConnection = Database['public']['Tables']['channel_connections']['Row'];
-type ChannelConnectionInsert = Database['public']['Tables']['channel_connections']['Insert'];
 
 export interface ConnectionData {
   channel_avatar_url: string | null;
@@ -55,7 +54,6 @@ export class YouTubeDatabaseService {
  // Get current YouTube connection status for the authenticated user
    
   async getConnectionStatus(): Promise<YouTubeConnectionStatus> {
-    logger.info('YouTubeDB', 'Checking connection status');
 
     try {
       const user = await authHelper.getUser();
@@ -73,7 +71,6 @@ export class YouTubeDatabaseService {
         .limit(1);
 
         
-      logger.info('Connections fetched', "" + { count: connections?.length || 0 });
 
       if (error) {
         throw errorHandler.createDatabaseError('Failed to fetch connection status', error);
@@ -87,11 +84,9 @@ export class YouTubeDatabaseService {
 
       // Check if token has expired
       if (connection.token_expires_at && new Date(connection.token_expires_at) <= new Date()) {
-        logger.warn('YouTubeDB', 'Connection token has expired', { connectionId: connection.id });
         return { isConnected: false };
       }
 
-      logger.debug('YouTubeDB', 'Active connection found', { connectionId: connection.id });
       return {
         isConnected: true,
         connection
@@ -104,14 +99,12 @@ export class YouTubeDatabaseService {
 
  // Save a new YouTube connection to the database
   async saveConnection(tokenData: TokenResponse, channelInfo: YouTubeChannel): Promise<ChannelConnection> {
-    logger.info('YouTubeDB', 'Saving new connection to database');
 
     try {
       const user = await authHelper.getUser();
       if (!user) {
         throw errorHandler.createAuthError('User not authenticated');
       }
-      logger.debug('YouTubeDB', 'User authenticated', { userId: user.id });
 
       // Deactivate existing connections
       await this.deactivateExistingConnections(user.id);
@@ -119,7 +112,6 @@ export class YouTubeDatabaseService {
       // Calculate token expiration
       const expiresAt = new Date();
       expiresAt.setSeconds(expiresAt.getSeconds() + tokenData.expires_in);
-      logger.debug('YouTubeDB', 'Token expiration calculated', { expiresAt: expiresAt.toISOString() });
 
       // Prepare connection data
       const connectionData: ConnectionData = {
@@ -139,8 +131,6 @@ export class YouTubeDatabaseService {
         sync_status: 'pending',
         tokens_encrypted: true,
       };
-
-      logger.debug('YouTubeDB', 'Connection data prepared', connectionData);
 
     //  Insert connection
       const { data: insertedConnection, error: insertError } = await supabase
@@ -162,7 +152,6 @@ export class YouTubeDatabaseService {
         throw errorHandler.createDatabaseError('Failed to store tokens', tokenResult.error);
       }
 
-      logger.info('YouTubeDB', 'Connection saved successfully', { connectionId: insertedConnection.id });
       return insertedConnection;
     } catch (error) {
       throw errorHandler.handleError(error, 'YouTubeDB', false);
@@ -176,7 +165,6 @@ export class YouTubeDatabaseService {
     connectionId: string,
     tokenData: Partial<TokenResponse>
   ): Promise<void> {
-    logger.info('YouTubeDB', 'Updating connection tokens', { connectionId });
 
     try {
       // Update token expiration if provided
@@ -205,8 +193,6 @@ export class YouTubeDatabaseService {
           throw errorHandler.createDatabaseError('Failed to update stored tokens', tokenResult.error);
         }
       }
-
-      logger.debug('YouTubeDB', 'Tokens updated successfully');
     } catch (error) {
       throw errorHandler.handleError(error, 'YouTubeDB', false);
     }
@@ -216,7 +202,6 @@ export class YouTubeDatabaseService {
    * Get user's YouTube connections
    */
   async getUserConnections(): Promise<ChannelConnection[]> {
-    logger.info('YouTubeDB', 'Fetching user connections');
 
     try {
       const user = await authHelper.getUser();
@@ -235,7 +220,6 @@ export class YouTubeDatabaseService {
         throw errorHandler.createDatabaseError('Failed to fetch connections', error);
       }
 
-      logger.debug('YouTubeDB', 'Connections retrieved', { count: connections?.length || 0 });
       return connections || [];
     } catch (error) {
       throw errorHandler.handleError(error, 'YouTubeDB', false);
@@ -246,7 +230,6 @@ export class YouTubeDatabaseService {
    * Disconnect (deactivate) a YouTube connection
    */
   async disconnectConnection(connectionId: string): Promise<void> {
-    logger.info('YouTubeDB', 'Disconnecting connection', { connectionId });
 
     try {
       const user = await authHelper.getUser();
@@ -268,7 +251,6 @@ export class YouTubeDatabaseService {
         throw errorHandler.createDatabaseError('Failed to disconnect connection', error);
       }
 
-      logger.info('YouTubeDB', 'Connection disconnected successfully');
     } catch (error) {
       throw errorHandler.handleError(error, 'YouTubeDB', false);
     }
@@ -287,7 +269,6 @@ export class YouTubeDatabaseService {
       raw_data?: any;
     }
   ): Promise<void> {
-    logger.info('YouTubeDB', 'Storing analytics data', { connectionId });
 
     try {
       const { error } = await (supabase as any).rpc('update_channel_analytics', {
@@ -305,7 +286,6 @@ export class YouTubeDatabaseService {
         throw errorHandler.createDatabaseError('Failed to store analytics data', error);
       }
 
-      logger.debug('YouTubeDB', 'Analytics data stored successfully');
     } catch (error) {
       throw errorHandler.handleError(error, 'YouTubeDB', false);
     }
@@ -315,13 +295,10 @@ export class YouTubeDatabaseService {
    * Get stored tokens for a connection
    */
   async getConnectionTokens(connectionId: string): Promise<DecryptedTokens | null> {
-    logger.debug('YouTubeDB', 'Retrieving connection tokens', { connectionId });
-
     try {
       const tokens = await SecureTokenService.getTokens(connectionId);
       
       if (!tokens) {
-        logger.warn('YouTubeDB', 'No tokens found for connection', { connectionId });
         return null;
       }
 
@@ -333,7 +310,6 @@ export class YouTubeDatabaseService {
   }
 
   async updateConnectionStatus(connectionId: string, isActive: boolean): Promise<void> {
-    logger.info('YouTubeDB', 'Updating connection status', { connectionId, isActive });
 
     try {
       const { error } = await supabase
@@ -345,7 +321,6 @@ export class YouTubeDatabaseService {
         throw errorHandler.createDatabaseError('Failed to update connection status', error);
       }
 
-      logger.info('YouTubeDB', 'Connection status updated successfully', { connectionId, isActive });
     } catch (error) {
       throw errorHandler.handleError(error, 'YouTubeDB', false);
     }
@@ -353,18 +328,14 @@ export class YouTubeDatabaseService {
 
 //  Deactivate existing YouTube connections for a user
   private async deactivateExistingConnections(userId: string): Promise<void> {
-    logger.debug('YouTubeDB', 'Deactivating existing connections', { userId });
-
     const { error } = await supabase
       .from('channel_connections')
       .update({ is_active: false })
       .eq('user_id', userId)
       .eq('platform', 'youtube');
 
-      logger.info('YouTubeDB', 'Existing connections deactivation attempted', { userId });
 
     if (error) {
-      logger.warn('YouTubeDB', 'Error deactivating existing connections', { error });
       }
   }
 }

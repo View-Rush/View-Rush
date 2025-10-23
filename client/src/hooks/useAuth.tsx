@@ -204,7 +204,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       // Try to sign out from Supabase (but don't wait for it)
-      console.log('Attempting Supabase signOut...');
       authService.signOut().catch(error => {
         console.error('Supabase signOut failed (non-blocking):', error);
       });
@@ -289,7 +288,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const updatePassword = async (newPassword: string) => {
     const response = await authService.updatePassword({ password: '', newPassword });
-    console.log('Update password response:', response);
     return { data: response.error ? null : {}, error: response.error };
   };
 
