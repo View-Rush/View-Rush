@@ -156,14 +156,14 @@ export default function YouTubeHeatmapApp() {
 
 
   return (
-    <div className="flex flex-col items-center justify-center px-4 py-14">
-      <Card className="w-full max-w-3xl">
-        <CardHeader>
-          <CardTitle className="text-2xl">YouTube Publish Time Optimizer</CardTitle>
+    <div className="flex flex-col items-center justify-center px-4 py-8">
+      <Card className="w-full max-w-6xl shadow-lg">
+        <CardHeader className="pb-6">
+          <CardTitle className="text-2xl">Optimal YouTube Publish Times</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-6 pb-6">
           {step === 1 && (
-            <div className="space-y-6">
+            <div className="space-y-6 max-w-3xl mx-auto">
               <div className="flex gap-4 mb-6">
                 <Button
                   onClick={() => setMode('link')}
@@ -324,42 +324,47 @@ export default function YouTubeHeatmapApp() {
           )}
           {step === 2 && (
             loading ? (
-              <div className="flex flex-col items-center justify-center gap-4 py-12">
-                <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                <div className="text-center space-y-2">
-                  <p className="text-lg font-semibold">Analyzing your video...</p>
-                  <p className="text-sm text-muted-foreground">This may take a few moments</p>
+              <div className="flex flex-col items-center justify-center gap-6 py-20">
+                <Loader2 className="w-16 h-16 animate-spin text-primary" />
+                <div className="text-center space-y-3">
+                  <p className="text-xl font-semibold">Analyzing your video...</p>
+                  <div className="flex items-center justify-center gap-2 mt-4">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
                 </div>
               </div>
             ) : heatmap ? (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mx-auto w-full max-w-5xl p-8 flex flex-col items-center"
+                className="mx-auto w-full flex flex-col items-center"
               >
-                <button onClick={() => { setStep(1); setHeatmap(null); setLoading(false); }} className="flex items-center text-red-400 mb-4 hover:text-red-500">
+                <button onClick={() => { setStep(1); setHeatmap(null); setLoading(false); }} className="flex items-center text-red-400 mb-6 hover:text-red-500 self-start">
                   <ArrowLeft className="w-4 h-4 mr-2" /> Back
                 </button>
-                <h2 className="text-xl font-semibold mb-6 text-center text-red-400">Predicted Weekly Heatmap</h2>
-                <div className="inline-block">
+                <h2 className="text-2xl font-semibold mb-8 text-center text-red-400">Predicted Weekly Heatmap</h2>
+                <div className="w-full overflow-x-auto flex justify-center px-4">
+                  <div className="inline-block p-8 bg-muted/30 rounded-xl">
                   {(() => {
                     // Flatten heatmap to get min and max
                     const flat = heatmap.flat();
                     const min = Math.min(...flat);
                     const max = Math.max(...flat);
                     return (
-                      <div className="grid grid-cols-[80px_repeat(24,1fr)] gap-1 text-xs">
+                      <div className="grid grid-cols-[80px_repeat(24,1fr)] gap-2 text-sm">
                         <div></div>
                         {hours.map((hour) => (
-                          <div key={hour} className="text-center text-black">{hour}</div>
+                          <div key={hour} className="text-center text-black font-medium">{hour}</div>
                         ))}
                         {heatmap.map((row: number[], dayIdx: number) => (
                           <React.Fragment key={dayIdx}>
-                            <div className="flex items-center justify-center text-black font-medium">{days[dayIdx]}</div>
+                            <div className="flex items-center justify-center text-black font-semibold pr-2">{days[dayIdx]}</div>
                             {row.map((score: number, hourIdx: number) => (
                               <div
                                 key={hourIdx}
-                                className="w-6 h-8 rounded-sm cursor-pointer transition-transform hover:scale-110"
+                                className="w-8 h-10 rounded-md cursor-pointer transition-transform hover:scale-110 shadow-sm"
                                 style={{ backgroundColor: getColor(score, min, max) }}
                                 title={`${days[dayIdx]}, ${hourIdx}:00 → ${(score * 100).toFixed(1)}% predicted engagement`}
                               ></div>
@@ -369,18 +374,21 @@ export default function YouTubeHeatmapApp() {
                       </div>
                     );
                   })()}
+                  </div>
                 </div>
-                <div className="mt-6 text-center text-black text-sm">
+                <div className="mt-8 text-center text-black text-sm font-medium">
                   <p>Deeper red = higher predicted engagement</p>
                 </div>
                 {topThree.length > 0 && (
-                  <div className="mt-6 mx-auto w-full max-w-lg bg-card rounded-xl p-6 text-center border border-border shadow">
-                    <h3 className="text-lg font-semibold text-primary mb-3">Top 3 Optimal Times</h3>
-                    {topThree.map((slot, idx) => (
-                      <p key={idx} className="text-foreground">
-                        {idx + 1}. {days[slot.dayIdx]} at {slot.hourIdx}:00 → {(slot.score * 100).toFixed(1)}%
-                      </p>
-                    ))}
+                  <div className="mt-8 mx-auto w-full max-w-lg bg-card rounded-xl p-8 text-center border border-border shadow-lg">
+                    <h3 className="text-xl font-semibold text-primary mb-4">Top 3 Optimal Times</h3>
+                    <div className="space-y-2">
+                      {topThree.map((slot, idx) => (
+                        <p key={idx} className="text-foreground text-base">
+                          {idx + 1}. {days[slot.dayIdx]} at {slot.hourIdx}:00 → {(slot.score * 100).toFixed(1)}%
+                        </p>
+                      ))}
+                    </div>
                   </div>
                 )}
               </motion.div>
