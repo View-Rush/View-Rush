@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { createMockSupabaseClient } from '@testing/utils/test-helpers';
 
-// Mock the auth services that useAuth depends on 
 vi.mock('@/services/auth', () => ({
   authService: {
     signIn: vi.fn().mockResolvedValue({ user: null, session: null, error: null }),
@@ -41,12 +40,10 @@ vi.mock('@/hooks/use-toast', () => ({
   toast: vi.fn(),
 }));
 
-// Unmock the useAuth hook for this test since we want to test the real implementation
 vi.unmock('@/hooks/useAuth');
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import { authService } from '@/services/auth';
 
-// Cast to mocked version
 const mockAuthService = vi.mocked(authService);
 
 describe('useAuth Hook', () => {
@@ -63,7 +60,7 @@ describe('useAuth Hook', () => {
   });
 
   afterEach(() => {
-    // Don't reset mocks, just clear call history
+    // just clear call history
     vi.clearAllMocks();
   });
 
@@ -339,12 +336,10 @@ describe('useAuth Hook', () => {
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
-      // Wait for initial mount to complete
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
       });
 
-      // Test that sign in returns the correct data
       await act(async () => {
         const response = await result.current.signIn('test@example.com', 'password');
         expect(response).toEqual({
@@ -353,7 +348,6 @@ describe('useAuth Hook', () => {
         });
       });
 
-      // Verify the auth service was called correctly
       expect(mockAuthService.signIn).toHaveBeenCalledWith({
         email: 'test@example.com',
         password: 'password',

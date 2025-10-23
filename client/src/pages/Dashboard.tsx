@@ -24,7 +24,6 @@ const Dashboard = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const [selectedTab, setSelectedTab] = useState('overview');
 
-  // Use dashboard context for all data management
   const {
     analyticsData,
     loading,

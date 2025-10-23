@@ -14,14 +14,13 @@ export function useChannelConnections() {
   const [lastLoadTime, setLastLoadTime] = useState<number>(0);
   const { user, loading: authLoading } = useAuth();
 
-  // Computed properties to help components make decisions
   const hasConnections = connections.length > 0;
   const hasActiveConnections = connections.some(conn => conn.is_active);
   const activeConnectionsCount = connections.filter(conn => conn.is_active).length;
 
   const loadConnections = async (forceRefresh = false) => {
     try {
-      // Don't proceed if auth is still loading or user is not authenticated
+
       if (authLoading) {
         return;
       }
@@ -39,7 +38,6 @@ export function useChannelConnections() {
         return;
       }
       
-      // Check if connection process is in progress and block if so
       if (connectionStateManager.isConnecting()) {
         setLoading(false);
         return;
@@ -96,7 +94,6 @@ export function useChannelConnections() {
 
       await youtubeService.connectAccount();
       
-      // Clear the timeout if we reach this point successfully
       clearTimeout(connectionTimeout);
     } catch (error) {
       toast({
@@ -145,11 +142,10 @@ export function useChannelConnections() {
   };
 
   useEffect(() => {
-    // Reset connecting state on mount in case we returned from OAuth redirect
     setConnecting(false);
     
     loadConnections();
-  }, [user, authLoading]); // Depend on user and authLoading state
+  }, [user, authLoading]);
 
   return {
     connections,

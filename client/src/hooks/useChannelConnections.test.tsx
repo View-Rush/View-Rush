@@ -5,10 +5,8 @@ import { createMockSupabaseClient } from '@testing/utils/test-helpers';
 import * as useAuthModule from '@/hooks/useAuth';
 import { youtubeService } from '@/services/youtube';
 
-// Unmock the hook to avoid global mock interference
 vi.unmock('@/hooks/useChannelConnections');
 
-// Mock the Supabase client
 const mockSupabase = createMockSupabaseClient();
 
 vi.mock('@/integrations/supabase/client', () => ({
@@ -41,7 +39,6 @@ describe('useChannelConnections Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     
-    // Set up default useAuth mock
     mockUseAuth.mockReturnValue({
       user: {
         id: 'user-1',
@@ -111,7 +108,7 @@ describe('useChannelConnections Hook', () => {
   ];
 
   it('should initialize with loading state', () => {
-    // getUserConnections is already mocked to return [] in beforeEach
+    
     const { result } = renderHook(() => useChannelConnections());
 
     expect(result.current.connections).toEqual([]);
@@ -159,13 +156,11 @@ describe('useChannelConnections Hook', () => {
 
     const { result } = renderHook(() => useChannelConnections());
 
-    // Should not load connections when auth is loading, so loading should be false
     expect(result.current.loading).toBe(false);
     expect(result.current.connections).toEqual([]);
   });
 
   it('should compute connection statistics correctly', async () => {
-    // Mock getUserConnections to return mock data
     mockYoutubeService.getUserConnections.mockResolvedValue(mockConnections);
 
     const { result } = renderHook(() => useChannelConnections());
@@ -181,9 +176,7 @@ describe('useChannelConnections Hook', () => {
   });
 
   it('should handle loadConnections method', async () => {
-    // Reset the mock to return empty array first for initial load
     mockYoutubeService.getUserConnections.mockResolvedValueOnce([]);
-    // Then return mock data for the manual refresh call
     mockYoutubeService.getUserConnections.mockResolvedValueOnce(mockConnections);
 
     const { result } = renderHook(() => useChannelConnections());
@@ -192,9 +185,8 @@ describe('useChannelConnections Hook', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    // Call loadConnections manually
     await waitFor(async () => {
-      await result.current.loadConnections(true); // Force refresh
+      await result.current.loadConnections(true);
     });
 
     expect(result.current.connections).toEqual(mockConnections);

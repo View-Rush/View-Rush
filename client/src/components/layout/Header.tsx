@@ -32,7 +32,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import logoImage from '@/assets/view-rush-logo.png';
 
-// Constants
 const NAVIGATION_ITEMS = [
   {
     title: 'Dashboard',

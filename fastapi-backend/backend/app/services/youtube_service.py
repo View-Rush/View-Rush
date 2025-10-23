@@ -19,7 +19,6 @@ def get_channel_details(channel_id: str):
         data = response.json() if response is not None else {}
         return data if isinstance(data, dict) else {}
     except Exception:
-        # Network or parsing error; return empty so callers can decide fallback
         return {}
 
 def get_channel_videos(channel_id: str, max_results: int = 10):
@@ -27,7 +26,6 @@ def get_channel_videos(channel_id: str, max_results: int = 10):
     Returns a dict {"videos": [...]} and avoids raising on missing keys or API errors.
     """
     try:
-        # Step 1: Get uploads playlist id
         channel_data = get_channel_details(channel_id) or {}
         items = channel_data.get("items") or []
         if not items:
@@ -41,7 +39,6 @@ def get_channel_videos(channel_id: str, max_results: int = 10):
         if not uploads_playlist:
             return {"videos": []}
 
-        # Step 2: Get playlist items
         url = f"{BASE_URL}/playlistItems"
         params = {
             "part": "snippet,contentDetails",
@@ -57,7 +54,6 @@ def get_channel_videos(channel_id: str, max_results: int = 10):
         if not video_ids:
             return {"videos": []}
 
-        # Step 3: Get video details with viewCount
         videos_url = f"{BASE_URL}/videos"
         videos_params = {
             "part": "snippet,statistics",
@@ -72,7 +68,6 @@ def get_channel_videos(channel_id: str, max_results: int = 10):
             snip = v.get("snippet", {})
             thumbs = snip.get("thumbnails", {})
             thumb_url = None
-            # choose available thumbnail key
             for k in ("default", "medium", "high", "standard", "maxres"):
                 if k in thumbs and isinstance(thumbs[k], dict):
                     thumb_url = thumbs[k].get("url")
@@ -89,7 +84,6 @@ def get_channel_videos(channel_id: str, max_results: int = 10):
             )
         return {"videos": videos}
     except Exception:
-        # Gracefully degrade to empty result
         return {"videos": []}
     
 

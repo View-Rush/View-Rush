@@ -8,7 +8,7 @@ import { youtubeService } from '@/services/youtube';
 import { connectionStateManager } from '@/services/connectionStateManager';
 import { toast } from '@/hooks/use-toast';
 
-// Mock dependencies with proper hoisting
+
 vi.mock('@/hooks/useAuth');
 vi.mock('@/hooks/useChannelConnections');
 vi.mock('@/services/youtube', () => ({
@@ -341,7 +341,6 @@ describe('DashboardContext', () => {
       // Clear previous calls
       vi.clearAllMocks();
 
-      // Call refresh - should force reload
       await act(async () => {
         await result.current.refreshData();
       });
@@ -467,7 +466,6 @@ describe('DashboardContext', () => {
 
       rerender();
 
-      // Should trigger new data load
       await waitFor(() => {
         expect(mockYoutubeService.getDashboardAnalytics).toHaveBeenCalled();
       });
@@ -500,7 +498,6 @@ describe('DashboardContext', () => {
         expect(result.current.isInitialized).toBe(true);
       });
 
-      // Should still accept the response even if malformed
       expect(result.current.analyticsData).toEqual({ invalid: 'data' });
     });
 
@@ -513,10 +510,8 @@ describe('DashboardContext', () => {
         expect(result.current.isInitialized).toBe(true);
       });
 
-      // Clear previous calls
       vi.clearAllMocks();
 
-      // Make multiple concurrent refresh calls
       await act(async () => {
         await Promise.all([
           result.current.refreshData(),
@@ -525,7 +520,6 @@ describe('DashboardContext', () => {
         ]);
       });
 
-      // Should only make the calls, not necessarily deduplicate (depends on implementation)
       expect(mockYoutubeService.getDashboardAnalytics).toHaveBeenCalled();
     });
   });
