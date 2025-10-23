@@ -62,15 +62,11 @@ export class YouTubeService {
       logger.error('YouTubeService', error.message, { missingConfig });
       throw error;
     }
-
-    logger.info('YouTubeService', 'Configuration validated successfully');
   }
 
 
 //    Check if user has connected YouTube account
   async getConnectionStatus(): Promise<YouTubeConnectionStatus> {
-    logger.info('YouTubeService', 'Checking connection status');
-    
     try {
       const status = await youtubeDatabaseService.getConnectionStatus();
       return status;
@@ -83,25 +79,19 @@ export class YouTubeService {
   
 // Connect YouTube account using popup OAuth flow   
   async connectAccount(): Promise<boolean> {
-    logger.info('YouTubeService', 'Starting YouTube account connection');
-
     try {
       if (!this.CLIENT_ID || !this.CLIENT_SECRET) {
         throw errorHandler.createConfigError('YouTube configuration is incomplete');
       }
 
       // Open popup and get authorization code
-      logger.debug('YouTubeService', 'Opening OAuth popup');
       const oauthResult: OAuthResult = await popupOAuthHandler.authenticate({
         clientId: this.CLIENT_ID,
         redirectUri: this.REDIRECT_URI,
         scopes: this.SCOPES
       });
 
-      logger.debug('YouTubeService', 'OAuth popup completed successfully');
-
       // Exchange code for tokens
-      logger.debug('YouTubeService', 'Exchanging authorization code for tokens');
       const tokenResponse = await youtubeApiClient.exchangeCodeForTokens(
         oauthResult.code,
         this.CLIENT_ID,
@@ -110,18 +100,15 @@ export class YouTubeService {
       );
 
       // Get channel information
-      logger.debug('YouTubeService', 'Fetching channel information');
       const channelInfo = await youtubeApiClient.getChannelInfo(tokenResponse.access_token);
 
       // Check if the channel is already connected
-      logger.debug('YouTubeService', 'Checking if channel is already connected');
       const existingConnections = await youtubeDatabaseService.getUserConnections();
       const existingConnection = existingConnections.find(
         connection => connection.channel_id === channelInfo.id
       );
 
       if (existingConnection) {
-        logger.debug('YouTubeService', 'Channel already connected, activating it');
         await youtubeDatabaseService.updateConnectionStatus(existingConnection.id, true);
 
         // Deactivate other connections
@@ -132,7 +119,6 @@ export class YouTubeService {
         }
       } else {
         // Save new connection to database
-        logger.debug('YouTubeService', 'Saving new connection to database');
         await youtubeDatabaseService.saveConnection(tokenResponse, channelInfo);
 
         // Deactivate other connections
@@ -142,8 +128,8 @@ export class YouTubeService {
       }
 
       // Sync initial analytics (non-blocking)
-      this.syncChannelAnalytics().catch(error => {
-        logger.warn('YouTubeService', 'Initial analytics sync failed', { error });
+      this.syncChannelAnalytics().catch(() => {
+        // Silent failure for initial sync
       });
 
       toast({
@@ -151,10 +137,6 @@ export class YouTubeService {
         description: `Successfully connected ${channelInfo.title}!`,
       });
 
-      logger.info('YouTubeService', 'YouTube connection completed successfully', {
-        channelId: channelInfo.id,
-        channelTitle: channelInfo.title
-      });
       return true;
     } catch (error) {
       logger.error('YouTubeService', 'YouTube connection failed', { error });
@@ -164,8 +146,6 @@ export class YouTubeService {
 
    // Disconnect YouTube account
   async disconnectAccount(connectionId?: string): Promise<void> {
-    logger.info('YouTubeService', 'Disconnecting YouTube account');
-
     try {
       const connections = await youtubeDatabaseService.getUserConnections();
       
@@ -186,8 +166,6 @@ export class YouTubeService {
         title: "YouTube Disconnected",
         description: "Your YouTube account has been disconnected successfully.",
       });
-
-      logger.info('YouTubeService', 'YouTube disconnection completed successfully');
     } catch (error) {
       throw errorHandler.handleError(error, 'YouTubeService');
     }
@@ -197,8 +175,6 @@ export class YouTubeService {
    * Sync channel analytics
    */
   async syncChannelAnalytics(): Promise<void> {
-    logger.info('YouTubeService', 'Starting analytics sync');
-
     try {
       const connectionStatus = await this.getConnectionStatus();
       
@@ -207,8 +183,6 @@ export class YouTubeService {
       }
 
       await this.syncSingleChannelAnalytics(connectionStatus.connection);
-      
-      logger.info('YouTubeService', 'Analytics sync completed successfully');
     } catch (error) {
       throw errorHandler.handleError(error, 'YouTubeService');
     }
@@ -218,8 +192,6 @@ export class YouTubeService {
    * Get channel analytics for dashboard
    */
   async getChannelAnalytics(connectionId?: string, connections?: any[]): Promise<ChannelAnalytics | null> {
-    logger.info('YouTubeService', 'Fetching channel analytics');
-
     try {
       // Use provided connections or fetch from database
       const userConnections = connections || await youtubeDatabaseService.getUserConnections();
@@ -263,7 +235,6 @@ export class YouTubeService {
           let tokens = await youtubeDatabaseService.getConnectionTokens(connection.id);
           // Check if token is expired and refresh if needed
           if (connection.token_expires_at && new Date(connection.token_expires_at) <= new Date()) {
-            logger.warn('YouTubeService', 'Access token expired, attempting refresh', { connectionId: connection.id });
             if (tokens?.refresh_token) {
               const refreshed = await youtubeApiClient.refreshAccessToken(
                 tokens.refresh_token,
@@ -289,7 +260,7 @@ export class YouTubeService {
             analytics.performance_metrics = this.calculatePerformanceMetrics(analytics.recent_videos);
           }
         } catch (error) {
-          logger.warn('YouTubeService', 'Failed to fetch recent videos', { error });
+          // Silent failure for video fetching
         }
       }
 
@@ -303,8 +274,6 @@ export class YouTubeService {
    * Get trending videos
    */
   async getTrendingVideos(regionCode: string = 'US', categoryId?: string): Promise<any[]> {
-    logger.info('YouTubeService', 'Fetching trending videos', { regionCode, categoryId });
-
     try {
       const connectionStatus = await this.getConnectionStatus();
       
@@ -332,8 +301,6 @@ export class YouTubeService {
    * Get user's YouTube connections
    */
   async getUserConnections() {
-    logger.info('YouTubeService', 'Fetching user connections');
-    
     try {
       return await youtubeDatabaseService.getUserConnections();
     } catch (error) {
@@ -379,8 +346,6 @@ export class YouTubeService {
    * Get analytics data formatted for Dashboard components
    */
   async getDashboardAnalytics(connectionId?: string, connections?: any[]) {
-    logger.info('YouTubeService', 'Getting dashboard analytics');
-    
     const rawAnalytics = await this.getChannelAnalytics(connectionId, connections);
     return this.transformAnalyticsForDashboard(rawAnalytics);
   }
@@ -389,13 +354,10 @@ export class YouTubeService {
    * Sync analytics for a single channel
    */
   private async syncSingleChannelAnalytics(connection: any): Promise<void> {
-    logger.debug('YouTubeService', 'Syncing analytics for single connection', { connectionId: connection.id });
-
     try {
       const tokens = await youtubeDatabaseService.getConnectionTokens(connection.id);
       
       if (!tokens?.access_token) {
-        logger.warn('YouTubeService', 'No access token available for sync', { connectionId: connection.id });
         return;
       }
 
@@ -423,8 +385,6 @@ export class YouTubeService {
           sync_timestamp: new Date().toISOString()
         }
       });
-
-      logger.debug('YouTubeService', 'Analytics sync completed for connection', { connectionId: connection.id });
     } catch (error) {
       logger.error('YouTubeService', 'Analytics sync failed for connection', {
         connectionId: connection.id,
@@ -439,8 +399,6 @@ export class YouTubeService {
    * Calculate performance metrics from videos
    */
   private calculatePerformanceMetrics(videos: YouTubeVideo[]): any {
-    logger.debug('YouTubeService', 'Calculating performance metrics', { videoCount: videos.length });
-
     if (videos.length === 0) {
       return {
         average_views_per_video: 0,

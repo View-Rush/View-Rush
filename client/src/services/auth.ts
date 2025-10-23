@@ -157,31 +157,6 @@ class AuthService {
     }
   }
 
-  // OAuth sign in (Google, GitHub, etc.)
-  // async signInWithOAuth(provider: 'google' | 'github' | 'discord'): Promise<{ error: any }> {
-  //   try {
-  //     const { error } = await supabase.auth.signInWithOAuth({
-  //       provider,
-  //       options: {
-  //         redirectTo: `${window.location.origin}/auth/callback`,
-  //       },
-  //     });
-
-  //     if (error) {
-  //       toast({
-  //         title: "OAuth sign in failed",
-  //         description: error.message,
-  //         variant: "destructive",
-  //       });
-  //     }
-
-  //     return { error };
-  //   } catch (error) {
-  //     console.error('OAuth sign in error:', error);
-  //     return { error };
-  //   }
-  // }
-
   // Reset password
   async resetPassword(data: ResetPasswordData): Promise<{ error: any }> {
     try {

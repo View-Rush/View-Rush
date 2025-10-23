@@ -11,8 +11,6 @@ import {
   Settings,
   RefreshCw,
   BarChart3,
-  Target,
-  Lightbulb,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -40,8 +38,6 @@ const Dashboard = () => {
     refreshConnections,
   } = useDashboard();
 
-
-  console.log('Recent videos:', analyticsData?.recent_videos);
   const handleRefreshData = async () => {
     if (!hasConnections) {
       toast({

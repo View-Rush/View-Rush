@@ -145,8 +145,6 @@ export function useChannelConnections() {
   };
 
   useEffect(() => {
-    console.log('useChannelConnections useEffect triggered - User:', user?.email, 'Auth loading:', authLoading);
-    
     // Reset connecting state on mount in case we returned from OAuth redirect
     setConnecting(false);
     

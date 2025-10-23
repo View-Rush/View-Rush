@@ -2,8 +2,6 @@ from fastapi import APIRouter, HTTPException
 import requests
 from app.config import YOUTUBE_API_KEY
 
-# print("Loaded API Key:", YOUTUBE_API_KEY)  # Removed to avoid logging sensitive information
-
 router = APIRouter(prefix="/test", tags=["Test"])
 
 BASE_URL = "https://www.googleapis.com/youtube/v3"
@@ -18,7 +16,6 @@ def get_channel_info(channel_id: str):
     }
     response = requests.get(url, params=params)
     data = response.json()
-    print(data)
     if "items" not in data or len(data["items"]) == 0:
         raise HTTPException(status_code=404, detail="Channel not found")
 

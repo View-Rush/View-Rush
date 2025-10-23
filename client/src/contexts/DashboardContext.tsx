@@ -100,7 +100,6 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
   const loadDashboardData = useCallback(async (forceRefresh = false) => {
     // Skip if no user or no connections
     if (!user || !hasConnections) {
-      console.log('No user or connections - skipping analytics load');
       setAnalyticsData(null);
       setIsInitialized(true);
       return;
@@ -108,18 +107,14 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
 
     // Skip if data already loaded and not forcing refresh
     if (analyticsData && !forceRefresh) {
-      console.log('Analytics data already loaded - skipping');
       return;
     }
 
     // Check if connection process is in progress and block if so
-    console.log('Checking connection state before loading dashboard data ', connectionStateManager.getState());
     if (connectionStateManager.isConnecting()) {
-      console.log('loadDashboardData() blocked - connection in progress');
       return;
     }
 
-    console.log('Loading analytics data for connected channel');
     setLoading(true);
 
     try {
@@ -139,11 +134,9 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
 
         if (data) {
           setAnalyticsData(data as AnalyticsData);
-          console.log('Analytics data loaded successfully');
         }
       } catch (timeoutError) {
         if (timeoutError instanceof Error && timeoutError.message.includes('timeout')) {
-          console.warn('Dashboard data loading timed out after 10 seconds');
           toast({
             title: "Loading timeout",
             description: "Dashboard data is taking longer than expected. Please try refreshing.",
@@ -169,13 +162,11 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
   // Initialize data only once when conditions are met
   useEffect(() => {
     if (!isInitialized && user && !connectionsLoading) {
-      console.log('🚀 Initializing dashboard data...');
       loadDashboardData();
     }
   }, [user, connectionsLoading, loadDashboardData, isInitialized]);
 
   const refreshData = useCallback(async () => {
-    console.log('Refreshing dashboard data...');
     await loadDashboardData(true);
     toast({
       title: "Data refreshed",

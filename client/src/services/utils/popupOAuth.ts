@@ -30,7 +30,6 @@ export class PopupOAuthHandler {
 
 //    Opens a popup window for OAuth authentication
   async authenticate(config: OAuthConfig): Promise<OAuthResult> {
-    logger.info('PopupOAuth', 'Starting popup OAuth authentication');
 
     return new Promise((resolve, reject) => {
       try {
@@ -53,8 +52,6 @@ export class PopupOAuthHandler {
         if (!this.popup) {
           throw errorHandler.createAuthError('Failed to open OAuth popup. Please check popup blocker settings.');
         }
-
-        logger.debug('PopupOAuth', 'Popup window opened', { url: authUrl });
 
         // Set up message listener for popup communication
         this.setupMessageListener(state, resolve, reject);
@@ -106,11 +103,8 @@ export class PopupOAuthHandler {
     reject: (error: Error) => void
   ): void {
     this.messageListener = (event: MessageEvent) => {
-      logger.debug('PopupOAuth', 'Received message from popup', { origin: event.origin });
-
       // Verify origin
       if (!this.isValidOrigin(event.origin)) {
-        logger.warn('PopupOAuth', 'Invalid origin received', { origin: event.origin });
         return;
       }
 
@@ -122,7 +116,6 @@ export class PopupOAuthHandler {
             throw new YouTubeAuthError('OAuth state mismatch');
           }
 
-          logger.info('PopupOAuth', 'OAuth success received');
           this.cleanup();
           resolve({
             code: data.code,
@@ -150,7 +143,6 @@ export class PopupOAuthHandler {
     const checkClosed = setInterval(() => {
       if (this.popup?.closed) {
         clearInterval(checkClosed);
-        logger.info('PopupOAuth', 'Popup window was closed');
         this.cleanup();
         reject(errorHandler.createAuthError('OAuth popup was closed by user'));
       }
@@ -160,7 +152,6 @@ export class PopupOAuthHandler {
     setTimeout(() => {
       clearInterval(checkClosed);
       if (this.popup && !this.popup.closed) {
-        logger.warn('PopupOAuth', 'OAuth timeout reached');
         this.cleanup();
         reject(errorHandler.createAuthError('OAuth timeout'));
       }

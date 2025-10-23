@@ -1,4 +1,3 @@
-import { logger } from '../utils/logger';
 import { errorHandler } from '../utils/errorHandler';
 
 export interface YouTubeChannel {
@@ -75,7 +74,6 @@ export class YouTubeApiClient {
     clientSecret: string,
     redirectUri: string
   ): Promise<TokenResponse> {
-    logger.info('YouTubeAPI', 'Exchanging authorization code for tokens');
 
     try {
       const tokenBody = new URLSearchParams({
@@ -104,7 +102,6 @@ export class YouTubeApiClient {
         );
       }
 
-      logger.info('YouTubeAPI', 'Token exchange successful');
       return responseData as TokenResponse;
     } catch (error) {
       throw errorHandler.handleError(error, 'YouTubeAPI', false);
@@ -119,7 +116,6 @@ export class YouTubeApiClient {
     clientId: string,
     clientSecret: string
   ): Promise<Omit<TokenResponse, 'refresh_token'>> {
-    logger.info('YouTubeAPI', 'Refreshing access token');
 
     try {
       const tokenBody = new URLSearchParams({
@@ -147,7 +143,6 @@ export class YouTubeApiClient {
         );
       }
 
-      logger.info('YouTubeAPI', 'Token refresh successful');
       return responseData;
     } catch (error) {
       throw errorHandler.handleError(error, 'YouTubeAPI', false);
@@ -157,7 +152,6 @@ export class YouTubeApiClient {
   
 //    Get channel information from YouTube API
   async getChannelInfo(accessToken: string): Promise<YouTubeChannel> {
-    logger.info('YouTubeAPI', 'Fetching channel information');
 
     try {
       const response = await this.makeAuthenticatedRequest(
@@ -180,7 +174,6 @@ export class YouTubeApiClient {
         brandingSettings: item.brandingSettings,
       };
 
-      logger.debug('YouTubeAPI', 'Channel info retrieved', { channelId: channelInfo.id, title: channelInfo.title });
       return channelInfo;
     } catch (error) {
       throw errorHandler.handleError(error, 'YouTubeAPI', false);
@@ -195,7 +188,6 @@ export class YouTubeApiClient {
     channelId: string,
     maxResults: number = 10
   ): Promise<YouTubeVideo[]> {
-    logger.info('YouTubeAPI', 'Fetching channel videos', { channelId, maxResults });
 
     try {
       // First, get video IDs from search
@@ -230,7 +222,6 @@ export class YouTubeApiClient {
         privacyStatus: item.status?.privacyStatus,
       }));
 
-      logger.debug('YouTubeAPI', 'Videos retrieved', { count: videos.length });
       return videos;
     } catch (error) {
       throw errorHandler.handleError(error, 'YouTubeAPI', false);
@@ -246,7 +237,6 @@ export class YouTubeApiClient {
     categoryId?: string,
     maxResults: number = 25
   ): Promise<any[]> {
-    logger.info('YouTubeAPI', 'Fetching trending videos', { regionCode, categoryId, maxResults });
 
     try {
       let endpoint = `/videos?part=snippet,statistics,contentDetails&chart=mostPopular&regionCode=${regionCode}&maxResults=${maxResults}`;
@@ -272,7 +262,6 @@ export class YouTubeApiClient {
         duration: item.contentDetails?.duration,
       }));
 
-      logger.debug('YouTubeAPI', 'Trending videos retrieved', { count: videos.length });
       return videos;
     } catch (error) {
       throw errorHandler.handleError(error, 'YouTubeAPI', false);
