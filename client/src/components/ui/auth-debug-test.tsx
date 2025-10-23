@@ -20,7 +20,6 @@ export function AuthDebugTest() {
   };
 
   useEffect(() => {
-    // Monitor auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       addLog(`Auth state change: ${event} - User: ${session?.user?.email || 'none'}`);
       setAuthState({ event, session: !!session, userEmail: session?.user?.email });

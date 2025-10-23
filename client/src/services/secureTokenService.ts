@@ -54,7 +54,6 @@ export class SecureTokenService {
     tokenData: TokenData
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      // Validate input
       if (!connectionId || !tokenData.access_token) {
         throw new Error('Connection ID and access token are required');
       }
@@ -141,8 +140,6 @@ export class SecureTokenService {
       if (!currentTokens) {
         throw new Error('Could not retrieve current tokens');
       }
-
-      // Store updated tokens
       return await this.storeTokens(connectionId, {
         access_token: newAccessToken,
         refresh_token: currentTokens.refresh_token || undefined

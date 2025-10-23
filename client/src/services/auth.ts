@@ -43,8 +43,6 @@ class AuthService {
   async signUp(data: SignUpData): Promise<{ user: User | null; error: any }> {
     try {
       const { email, password, displayName, firstName, lastName, metadata = {} } = data;
-
-      // Prepare user metadata
       const userMetadata = {
         display_name: displayName,
         first_name: firstName,
@@ -185,8 +183,6 @@ class AuthService {
       return { error };
     }
   }
-
-  // Update password
   async updatePassword(data: UpdatePasswordData): Promise<{ error: any }> {
     try {
       const { newPassword } = data;
@@ -234,8 +230,6 @@ class AuthService {
       return { user: null, error };
     }
   }
-
-  // Update user profile
   async updateProfile(updates: {
     email?: string;
     display_name?: string;
@@ -275,8 +269,6 @@ class AuthService {
       return { user: null, error };
     }
   }
-
-  // Refresh session
   async refreshSession(): Promise<{ session: Session | null; error: any }> {
     try {
       const { data, error } = await supabase.auth.refreshSession();

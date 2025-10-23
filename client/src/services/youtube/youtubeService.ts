@@ -200,13 +200,9 @@ export class YouTubeService {
       if (!connection) {
         return null;
       }
-
-      // Get fresh data if connection is active
       if (connection.is_active) {
         await this.syncSingleChannelAnalytics(connection);
       }
-
-      // Build analytics from stored metadata and fresh data
       const metadata = connection.metadata as any;
       const statistics = metadata?.statistics || {};
 
@@ -235,7 +231,6 @@ export class YouTubeService {
                 import.meta.env.VITE_YOUTUBE_CLIENT_SECRET
               );
               tokens.access_token = refreshed.access_token;
-              // Update token_expires_at in DB (optional, for accuracy)
               // You may want to call a DB update here
             } else {
               throw new Error('No refresh token available for expired access token');
@@ -247,13 +242,11 @@ export class YouTubeService {
               connection.channel_id,
               20 // fetch more for better filtering
             );
-            // Separate public and private/unlisted videos
             analytics.recent_videos = allVideos.filter(v => v.privacyStatus === 'public');
             analytics.private_unlisted_videos = allVideos.filter(v => v.privacyStatus === 'private' || v.privacyStatus === 'unlisted');
             analytics.performance_metrics = this.calculatePerformanceMetrics(analytics.recent_videos);
           }
         } catch (error) {
-          // Silent failure for video fetching
         }
       }
 
@@ -353,8 +346,6 @@ export class YouTubeService {
       if (!tokens?.access_token) {
         return;
       }
-
-      // Get fresh channel info
       const channelInfo = await youtubeApiClient.getChannelInfo(tokens.access_token);
       
       // Get recent videos for performance metrics
@@ -411,8 +402,6 @@ export class YouTubeService {
 
     const averageViews = totalViews / videos.length;
     const engagementRate = totalViews > 0 ? ((totalLikes + totalComments) / totalViews) * 100 : 0;
-
-    // Calculate upload frequency (videos per week over last 30 days)
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     

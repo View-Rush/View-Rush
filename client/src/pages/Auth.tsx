@@ -96,8 +96,6 @@ const Auth = () => {
 
     // Ensure the tab is set to signup so returning from YouTube step shows it
     setActiveTab("signup");
-
-    // Store signup data and show YouTube connect step
     setSignupData({ email, password, displayName });
     localStorage.setItem(
       "signupData",

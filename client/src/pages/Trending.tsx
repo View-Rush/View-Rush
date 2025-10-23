@@ -84,8 +84,6 @@ const Trending = () => {
   const loadTrendingVideos = async () => {
     try {
       setLoading(true);
-      
-      // Check if API key is configured
       if (!import.meta.env.VITE_YOUTUBE_API_KEY) {
         throw new Error('YouTube API key not configured');
       }

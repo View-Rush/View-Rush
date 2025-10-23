@@ -167,7 +167,6 @@ export class YouTubeDatabaseService {
   ): Promise<void> {
 
     try {
-      // Update token expiration if provided
       if (tokenData.expires_in) {
         const expiresAt = new Date();
         expiresAt.setSeconds(expiresAt.getSeconds() + tokenData.expires_in);
@@ -181,8 +180,6 @@ export class YouTubeDatabaseService {
           throw errorHandler.createDatabaseError('Failed to update token expiration', error);
         }
       }
-
-      // Update stored tokens
       const tokens: any = {};
       if (tokenData.access_token) tokens.access_token = tokenData.access_token;
       if (tokenData.refresh_token) tokens.refresh_token = tokenData.refresh_token;
