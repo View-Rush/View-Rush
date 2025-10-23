@@ -39,8 +39,6 @@ class PredictionResponse(BaseModel):
 @router.post("/predictions", response_model=PredictionResponse)
 def get_predictions(payload: PredictionRequest):
     try:
-        # 1️⃣ Fetch channel info + recent videos
-        # Extract channel_id from channel URL if possible
         channel_id = None
         if payload.channel:
             match = re.search(r"channel/([\w-]+)", payload.channel)
@@ -53,7 +51,6 @@ def get_predictions(payload: PredictionRequest):
         videos_data = get_channel_videos(channel_id, max_results=11)
         channel_info = channel_data["items"][0]
 
-        # Prepare recent video info
         recent_videos = []
         for v in videos_data["videos"]:
             recent_videos.append({
@@ -63,7 +60,6 @@ def get_predictions(payload: PredictionRequest):
                 "view_count": int(v.get("viewCount", 0))
             })
 
-        # 2️⃣ Build user (channel) embedding
         _lazy_load_models()
         processed = preprocess_youtube_response({
             "channel": {"title": channel_info["snippet"]["title"]},
@@ -97,7 +93,7 @@ def get_predictions(payload: PredictionRequest):
         else:
             user_embedding = np.mean(np.stack(video_embeddings, axis=0), axis=0).astype(float)
 
-        # 3️⃣ Get video embedding via VidTower
+        
         client = Client("MeshMax/VidTower")
         result = client.predict(
             title=payload.title,
@@ -125,7 +121,6 @@ def get_predictions(payload: PredictionRequest):
         else:
             raise HTTPException(status_code=502, detail="VidTower returned unknown response type")
 
-        # 4️⃣ Compute BiCrossAttention heatmap
         bicross_model.eval()
         with torch.no_grad():
             user_emb_tensor = torch.tensor([user_embedding], dtype=torch.float32).to(fusion_device)
@@ -140,12 +135,12 @@ def get_predictions(payload: PredictionRequest):
             slot_scores = bicross_model(user_emb_tensor, video_emb_tensor)
             heatmap_flat = torch.sigmoid(slot_scores).cpu().numpy()[0]
 
-        # 5️⃣ Convert flat heatmap to weekly heatmap (7x24)
+       
         if len(heatmap_flat) != 168:
             raise HTTPException(status_code=500, detail="Heatmap output is not 168 slots (7x24)")
         heatmap = [list(heatmap_flat[i*24:(i+1)*24]) for i in range(7)]
 
-        # 6️⃣ Find top three slots
+       
         flat = [
             {"dayIdx": d, "hourIdx": h, "score": heatmap[d][h]}
             for d in range(7) for h in range(24)

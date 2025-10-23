@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -6,9 +5,6 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from app.models.embedding_models import EmbeddingRequest
 
-# ---------------------------
-# Cross-Attention Block
-# ---------------------------
 class CrossAttentionBlock(nn.Module):
     def __init__(self, embed_dim, num_heads=4, dropout=0.1):
         super(CrossAttentionBlock, self).__init__()
@@ -28,9 +24,6 @@ class CrossAttentionBlock(nn.Module):
         out_ff = self.ff_norm(out + self.ff(out))
         return out_ff
 
-# ---------------------------
-# Adaptive Modality Selector
-# ---------------------------
 class AdaptiveSelector(nn.Module):
     def __init__(self, embed_dim, num_modalities=3):
         super(AdaptiveSelector, self).__init__()
@@ -41,9 +34,6 @@ class AdaptiveSelector(nn.Module):
         weights = F.softmax(self.fc(combined), dim=-1)
         return weights
 
-# ---------------------------
-# Fusion Model
-# ---------------------------
 class FusionModel(nn.Module):
     def __init__(self, embed_dim, num_heads=4, num_slots=24):
         super(FusionModel, self).__init__()
@@ -81,17 +71,7 @@ class FusionModel(nn.Module):
         heatmap = torch.sigmoid(slot_scores)
         return heatmap
 
-# ---------------------------
-# FastAPI router
-# ---------------------------
 router = APIRouter(prefix="/cross-attention-fusion-model", tags=["Fusion Model"])
-
-# # Example embedding dimension
-# embed_dim = 384
-# num_slots = 168  # 7 days * 24 hours
-# model = FusionModel(embed_dim, num_heads=4, num_slots=num_slots)
-# model.eval()
-
 
 # Initialize model
 EMBED_DIM = 384
@@ -99,7 +79,6 @@ NUM_HEADS = 4
 NUM_SLOTS = 168
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Get the path to the model file (works both locally and in Docker)
 import os
 from pathlib import Path
 model_path = Path(__file__).parent.parent.parent / "fusion_model.pth"

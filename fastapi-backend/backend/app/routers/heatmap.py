@@ -9,9 +9,6 @@ from app.models.embedding_models import EmbeddingRequest, HeatmapResponse
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter, HTTPException
 
-# -------------------------
-# Model definition
-# -------------------------
 class EarlyFusionModel(nn.Module):
     def __init__(self, metadata_dim: int, content_dim: int, user_dim: int,
                  hidden_dim: int = 384, num_slots: int = 168):
@@ -31,26 +28,14 @@ class EarlyFusionModel(nn.Module):
         heatmap = F.softmax(logits, dim=-1)
         return heatmap
 
-# -------------------------
-# FastAPI setup
-# -------------------------
-# app = FastAPI(title="Fusion Model API", description="Predicts heatmap from embeddings")
 router = APIRouter(prefix="/mlp-fusion-model", tags=["Fusion Model"])
 
-# Example dims (adjust based on your real embeddings)
 metadata_dim = 384
 content_dim = 384
 user_dim = 384
 model = EarlyFusionModel(metadata_dim, content_dim, user_dim)
 model.eval()
 
-# -------------------------
-# Request schema
-# -------------------------
-
-# -------------------------
-# Endpoint
-# -------------------------
 @router.post("/predict-heatmap", response_model=HeatmapResponse)
 def predict_heatmap(payload: EmbeddingRequest):
     try:

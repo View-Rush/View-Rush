@@ -7,9 +7,6 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from app.models.embedding_models import EmbeddingRequest
 
-# -----------------------------------------------------
-# Define CrossAttentionBlock and BiCrossAttentionFusionModel
-# -----------------------------------------------------
 class CrossAttentionBlock(nn.Module):
     def __init__(self, embed_dim, num_heads=4, dropout=0.1):
         super().__init__()
@@ -58,9 +55,6 @@ class BiCrossAttentionFusionModel(nn.Module):
         return out
 
 
-# -----------------------------------------------------
-# Initialize model and device
-# -----------------------------------------------------
 router = APIRouter(prefix="/bicross-fusion", tags=["Fusion Model"])
 
 VIDEO_DIM = 384
@@ -71,7 +65,6 @@ NUM_SLOTS = 168
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Get the path to the model file (works both locally and in Docker)
 import os
 from pathlib import Path
 model_path = Path(__file__).parent.parent.parent / "bidirectional_fusion_model.pth"
@@ -82,10 +75,6 @@ model.load_state_dict(torch.load(str(model_path), map_location=device))
 model.to(device)
 model.eval()
 
-
-# -----------------------------------------------------
-# FastAPI endpoint for prediction
-# -----------------------------------------------------
 @router.post("/predict-slot-heatmap")
 def predict_slot_heatmap(payload: BidirectionalModelInput):
     """

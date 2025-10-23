@@ -8,10 +8,7 @@ from app.models.embedding_models import VideoInput
 
 router = APIRouter(prefix="/video-tower", tags=["Fusion Model"])
 
-# Initialize the Hugging Face Gradio client once
 client = Client("MeshMax/VidTower")
-
-# Request body model
 
 @router.post("/get-video-embedding/")
 async def get_video_embedding(video: VideoInput):
@@ -27,13 +24,12 @@ async def get_video_embedding(video: VideoInput):
 
         embedding: List[float]
 
-        # Normalize various possible response shapes into a list[float]
+        # Normalize various possible response shapes into a list
         if isinstance(result, (list, tuple)):
             embedding = [float(x) for x in result]
         elif hasattr(result, "tolist"):
             embedding = [float(x) for x in result.tolist()]
         elif isinstance(result, str):
-            # Try JSON first: e.g., "[0.1, 0.2, ...]"
             parsed = None
             try:
                 parsed = json.loads(result)
@@ -42,7 +38,6 @@ async def get_video_embedding(video: VideoInput):
             if isinstance(parsed, (list, tuple)):
                 embedding = [float(x) for x in parsed]
             else:
-                # Fallback: extract all numbers from the string
                 nums = re.findall(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", result)
                 if not nums:
                     raise HTTPException(status_code=502, detail="VidTower returned a string without numeric values")

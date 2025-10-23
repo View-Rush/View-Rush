@@ -9,7 +9,7 @@ app = FastAPI(title="YouTube Optimal Time Backend")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # you can restrict this to ["http://localhost:3000"] for React
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

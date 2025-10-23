@@ -1,17 +1,13 @@
-# app/routers/profile_embedding.py
 import logging
 import numpy as np
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Any, Optional
 from app.models.embedding_models import ChannelResponseIn, EmbeddingOut, VideoIn
 
-# Import or define _lazy_load_models
 from app.services.embedding_service import _lazy_load_models, clean_text, preprocess_youtube_response, extract_entities_and_link, score_topics, video_to_weighted_embedding, _models
 router = APIRouter(prefix="/embed", tags=["Profile Embedding"])
 
-# -------------------------
-# Route implementation
-# -------------------------
+
 @router.post("/channel-embedding", response_model=EmbeddingOut)
 def build_channel_embedding(payload: ChannelResponseIn):
     """
@@ -28,11 +24,9 @@ def build_channel_embedding(payload: ChannelResponseIn):
     # Convert payload -> dict
     api_response = payload.dict()
 
-    # Step 1: Preprocess
     processed = preprocess_youtube_response(api_response)
     videos = processed.get("videos", [])
     if not videos:
-        # return zero vector if no videos
         embedder = _models["embedder"]
         zero_vec = np.zeros(embedder.get_sentence_embedding_dimension(), dtype=float)
         return EmbeddingOut(
@@ -45,7 +39,6 @@ def build_channel_embedding(payload: ChannelResponseIn):
     # compute global max views for normalization
     max_views = max([v.get("view_count", 0) for v in videos]) if videos else 1.0
 
-    # Step 2 & 3: entity linking + topic scoring -> build per-video structure
     final_videos = []
     for v in videos:
         el = extract_entities_and_link(v)
@@ -59,7 +52,6 @@ def build_channel_embedding(payload: ChannelResponseIn):
             "scores": topic_info.get("scores", [])
         })
 
-    # Step 4: Embedding + weighting
     video_embeddings = []
     for v in final_videos:
         emb = video_to_weighted_embedding(v, global_max_views=max_views)
@@ -75,8 +67,7 @@ def build_channel_embedding(payload: ChannelResponseIn):
             videos_processed=0,
             channel_title=processed["channel"]["title"]
         )
-
-    # Aggregate to channel level (mean of weighted video embeddings)
+    
     channel_vector = np.mean(np.stack(video_embeddings, axis=0), axis=0)
     channel_vector = channel_vector.astype(float)
 

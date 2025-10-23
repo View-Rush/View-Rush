@@ -1,4 +1,3 @@
-# app/models/embedding_models.py
 from pydantic import BaseModel
 from typing import List, Dict, Any
 
@@ -12,7 +11,7 @@ class VideoInput(BaseModel):
 
 
 class HeatmapResponse(BaseModel):
-    slot_probabilities: dict[int, float]  # slot_id -> probability
+    slot_probabilities: dict[int, float]  
 
 
 class EmbeddingRequest(BaseModel):

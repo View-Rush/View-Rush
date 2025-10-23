@@ -7,7 +7,6 @@ import torch
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
 from typing import Optional, Dict, Any
-# Lazy-loaded global model holders
 
 _models = {
     "ner": None,
@@ -16,7 +15,7 @@ _models = {
 }
 _models_lock = Lock()
 
-# Candidate labels
+
 CANDIDATE_LABELS = [
     'animation', 'cartoon', '3D', 'short film', 'stop motion',
     'car', 'motorcycle', 'automobile', 'driving', 'vehicles',
@@ -48,9 +47,6 @@ CANDIDATE_LABELS = [
     'short', 'clip', 'quick', 'mini', 'snippet', 'show', 'episode',
     'series', 'tv', 'performance', 'trailer', 'preview', 'teaser',
     'clip', 'announcement']
-
-# Helper utilities
-
 
 def _lazy_load_models():
     """
@@ -165,7 +161,6 @@ def score_topics(processed_video: Dict[str, Any]) -> Dict[str, Any]:
         return {"topics": [], "scores": []}
     classifier = _models["classifier"]
     res = classifier(text, CANDIDATE_LABELS, multi_label=True)
-    # res contains 'labels' and 'scores'
     top_k = min(5, len(res.get("labels", [])))
     labels = res.get("labels", [])[:top_k]
     scores = [float(s) for s in res.get("scores", [])[:top_k]]
