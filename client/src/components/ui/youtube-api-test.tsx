@@ -87,7 +87,6 @@ export const YouTubeAPITest = () => {
           </Button>
         </div>
 
-        {/* OAuth Test */}
         <div className="flex items-center justify-between p-3 border rounded-lg">
           <div className="flex items-center gap-2">
             <PlayCircle className="h-4 w-4" />
@@ -102,7 +101,6 @@ export const YouTubeAPITest = () => {
           </Button>
         </div>
 
-        {/* Sample Trending Videos */}
         {trending.length > 0 && (
           <div className="space-y-2">
             <h4 className="font-medium text-sm">Sample Trending Videos:</h4>

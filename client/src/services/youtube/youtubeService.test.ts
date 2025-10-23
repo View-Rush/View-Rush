@@ -1,6 +1,6 @@
 import {beforeEach, MockedFunction } from 'vitest';
 
-// Mock dependencies first
+
 vi.mock('@/hooks/use-toast', () => ({
   toast: vi.fn(),
 }));
@@ -58,7 +58,7 @@ vi.mock('./databaseService', () => ({
   },
 }));
 
-// Mock the YouTubeService with importOriginal
+
 vi.mock('./youtubeService', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./youtubeService')>();
   
@@ -103,7 +103,7 @@ vi.mock('./youtubeService', async (importOriginal) => {
 // Import after mocking
 import { YouTubeService } from './youtubeService';
 
-// Mock type for our service
+
 type MockYouTubeService = {
   validateConfig: MockedFunction<any>;
   getConnectionStatus: MockedFunction<any>;

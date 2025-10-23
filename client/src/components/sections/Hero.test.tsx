@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing/utils/test-helpers';
 import { Hero } from '@/components/sections/Hero';
 
-// Mock router
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router-dom')>();
@@ -28,7 +27,7 @@ describe('Hero Component', () => {
   it('should render subtitle/description', () => {
     render(<Hero />);
     
-    // Look for descriptive text about the platform
+    // descriptive text about the platform
     const description = screen.getByText(/Unlock the power of data-driven YouTube success/i);
     expect(description).toBeInTheDocument();
     
@@ -62,7 +61,6 @@ describe('Hero Component', () => {
   it('should render hero image or illustration', () => {
     render(<Hero />);
     
-    // Look for hero image
     const image = screen.queryByRole('img');
     if (image) {
       expect(image).toBeInTheDocument();
@@ -79,7 +77,6 @@ describe('Hero Component', () => {
   });
 
   it('should be responsive', () => {
-    // Test that component renders without errors on different screen sizes
     const { container } = render(<Hero />);
     
     expect(container.firstChild).toBeInTheDocument();
@@ -88,13 +85,11 @@ describe('Hero Component', () => {
   it('should have accessible elements', () => {
     render(<Hero />);
     
-    // All buttons should be focusable
     const buttons = screen.getAllByRole('button');
     buttons.forEach(button => {
       expect(button).toBeEnabled();
     });
     
-    // All images should have alt text
     const images = screen.getAllByRole('img');
     images.forEach(img => {
       expect(img).toHaveAttribute('alt');
@@ -104,22 +99,20 @@ describe('Hero Component', () => {
   it('should handle secondary action if present', () => {
     render(<Hero />);
     
-    // Look for secondary CTA like "Learn More" or "Watch Demo"
+   
     const secondaryButton = screen.queryByRole('button', { name: /learn more|demo|watch/i });
     if (secondaryButton) {
       fireEvent.click(secondaryButton);
-      // Should perform appropriate action (navigate, scroll, etc.)
+
     }
   });
 
   it('should display key value propositions', () => {
-    render(<Hero />);
+    render(<Hero />); 
     
-    // Should highlight main benefits - use getAllByText for multiple matches
     const texts = screen.getAllByText(/analytics|insights|data|growth|performance/i);
     expect(texts.length).toBeGreaterThan(0);
-    
-    // Verify specific stats are shown
+  
     expect(screen.getByText(/113/)).toBeInTheDocument(); // Countries Analyzed
     expect(screen.getByText(/100K\+/)).toBeInTheDocument(); // Videos Tracked  
     expect(screen.getByText(/10K\+/)).toBeInTheDocument(); // Creators Trust Us

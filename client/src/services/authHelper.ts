@@ -14,7 +14,7 @@ class AuthHelper {
     this.lastUserCheck = Date.now();
   }
 
-  // Get current user with caching to prevent concurrent calls
+
   async getUser(): Promise<User | null> {
     // If we have a user from context, use it
     if (this.userFromContext) {

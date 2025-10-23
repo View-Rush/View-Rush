@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { PopupOAuthHandler, OAuthConfig, OAuthResult } from './popupOAuth';
 
-// Mock dependencies
+
 vi.mock('./logger', () => ({
   logger: {
     info: vi.fn(),
@@ -24,7 +24,7 @@ vi.mock('./errorHandler', () => ({
   },
 }));
 
-// Mock crypto.randomUUID
+
 Object.defineProperty(global, 'crypto', {
   value: {
     randomUUID: vi.fn(() => 'test-uuid-12345'),
@@ -51,7 +51,7 @@ describe('PopupOAuthHandler', () => {
     // Get fresh instance
     popupHandler = PopupOAuthHandler.getInstance();
 
-    // Mock popup window
+
     mockPopup = {
       close: vi.fn(),
       closed: false,
@@ -60,11 +60,11 @@ describe('PopupOAuthHandler', () => {
       },
     };
 
-    // Mock window.open
+
     originalWindowOpen = window.open;
     window.open = vi.fn(() => mockPopup);
 
-    // Mock window properties
+
     originalLocation = window.location;
     Object.defineProperty(window, 'location', {
       value: {
@@ -73,13 +73,13 @@ describe('PopupOAuthHandler', () => {
       writable: true,
     });
 
-    // Mock window dimensions
+
     Object.defineProperty(window, 'screenX', { value: 100, writable: true });
     Object.defineProperty(window, 'screenY', { value: 100, writable: true });
     Object.defineProperty(window, 'outerWidth', { value: 1200, writable: true });
     Object.defineProperty(window, 'outerHeight', { value: 800, writable: true });
 
-    // Mock addEventListener and removeEventListener
+
     window.addEventListener = vi.fn();
     window.removeEventListener = vi.fn();
 
@@ -94,7 +94,7 @@ describe('PopupOAuthHandler', () => {
       writable: true,
     });
 
-    // Force cleanup
+
     popupHandler.forceCleanup();
 
     vi.clearAllMocks();
@@ -184,7 +184,7 @@ describe('PopupOAuthHandler', () => {
     it('should generate correct OAuth URL', async () => {
       const authPromise = popupHandler.authenticate(mockConfig);
       
-      // Check that window.open was called with correct URL
+
       expect(window.open).toHaveBeenCalledWith(
         expect.stringContaining('client_id=test-client-id'),
         'oauth_popup',
@@ -264,7 +264,7 @@ describe('PopupOAuthHandler', () => {
     });
 
     it('should reject when popup fails to open', async () => {
-      // Mock window.open to return null (popup blocked)
+
       window.open = vi.fn(() => null);
 
       await expect(popupHandler.authenticate(mockConfig)).rejects.toThrow(
@@ -389,7 +389,7 @@ describe('PopupOAuthHandler', () => {
     });
 
     it('should handle errors during authentication setup', async () => {
-      // Mock an error during setup
+
       const originalCrypto = global.crypto;
       global.crypto = {
         ...global.crypto,
@@ -443,7 +443,7 @@ describe('PopupOAuthHandler', () => {
         scopes: ['scope1'],
       });
 
-      // Force cleanup
+
       popupHandler.forceCleanup();
 
       expect(mockPopup.close).toHaveBeenCalled();

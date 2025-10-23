@@ -22,7 +22,7 @@ export function YouTubeConnectStep({ onComplete, onSkip, onBack, isVisible }: Yo
     try {
       setIsConnecting(true);
       await youtubeService.connectAccount();
-      // The page will redirect to YouTube OAuth, so no need to handle the response here
+      
     } catch (error) {
       console.error('Failed to start YouTube connection:', error);
       toast({

@@ -28,21 +28,21 @@ export class PopupOAuthHandler {
   }
 
 
-//    Opens a popup window for OAuth authentication
+
   async authenticate(config: OAuthConfig): Promise<OAuthResult> {
 
     return new Promise((resolve, reject) => {
       try {
-        // Generate state if not provided
+
         const state = config.state || this.generateState();
         
-        // Build OAuth URL
+
         const authUrl = this.buildAuthUrl(config, state);
         
-        // Calculate popup dimensions
+
         const popupFeatures = this.getPopupFeatures();
         
-        // Open popup
+
         this.popup = window.open(
           authUrl,
           'oauth_popup',
@@ -53,10 +53,10 @@ export class PopupOAuthHandler {
           throw errorHandler.createAuthError('Failed to open OAuth popup. Please check popup blocker settings.');
         }
 
-        // Set up message listener for popup communication
+
         this.setupMessageListener(state, resolve, reject);
 
-        // Set up popup monitoring
+
         this.monitorPopup(reject);
 
       } catch (error) {
@@ -67,7 +67,7 @@ export class PopupOAuthHandler {
   }
 
   
-// Builds the OAuth authorization URL
+
   private buildAuthUrl(config: OAuthConfig, state: string): string {
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     
@@ -83,7 +83,7 @@ export class PopupOAuthHandler {
   }
 
 
-//  Generates popup window features string
+
    
   private getPopupFeatures(): string {
     const width = 500;
@@ -95,7 +95,7 @@ export class PopupOAuthHandler {
   }
 
   
-// Sets up message listener for receiving OAuth response
+
    
   private setupMessageListener(
     expectedState: string,
@@ -103,7 +103,7 @@ export class PopupOAuthHandler {
     reject: (error: Error) => void
   ): void {
     this.messageListener = (event: MessageEvent) => {
-      // Verify origin
+
       if (!this.isValidOrigin(event.origin)) {
         return;
       }
@@ -137,7 +137,7 @@ export class PopupOAuthHandler {
   }
 
   
-//    Monitors popup window and handles closure
+
    
   private monitorPopup(reject: (error: Error) => void): void {
     const checkClosed = setInterval(() => {
@@ -148,7 +148,7 @@ export class PopupOAuthHandler {
       }
     }, 1000);
 
-    // Cleanup interval after 5 minutes
+
     setTimeout(() => {
       clearInterval(checkClosed);
       if (this.popup && !this.popup.closed) {
@@ -159,7 +159,7 @@ export class PopupOAuthHandler {
   }
 
   
-//    Validates the origin of received messages
+
 
   private isValidOrigin(origin: string): boolean {
     const allowedOrigins = [
@@ -171,14 +171,14 @@ export class PopupOAuthHandler {
   }
 
 
-// Generates a secure state parameter
+
 
   private generateState(): string {
     return crypto.randomUUID();
   }
 
   
-//  Cleans up popup and event listeners
+
   private cleanup(): void {
     if (this.popup) {
       this.popup.close();
@@ -192,7 +192,7 @@ export class PopupOAuthHandler {
   }
 
 
-    // Forces cleanup (useful for component unmounting)
+
 
   public forceCleanup(): void {
     this.cleanup();

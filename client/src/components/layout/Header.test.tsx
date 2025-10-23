@@ -144,7 +144,7 @@ describe('Header Component', () => {
 
       render(<Header />);
       
-      expect(screen.getByText('T')).toBeInTheDocument(); // First letter initials
+      expect(screen.getByText('T')).toBeInTheDocument();
     });
 
     it('should handle user menu interactions', async () => {

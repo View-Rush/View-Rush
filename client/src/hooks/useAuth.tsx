@@ -18,7 +18,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Function declaration instead of arrow function for better Fast Refresh compatibility
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -31,7 +30,6 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Use function declaration for the component as well for better Fast Refresh compatibility
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -41,7 +39,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     let mounted = true;
     
-    // Set up auth state listener
     const { data: { subscription } } = authService.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
@@ -51,10 +48,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(null);
           setLoading(false);
           
-          // Clear authHelper cache
           authHelper.clearCache();
           
-          // Clear auth-related storage when signed out
           const authKeys = Object.keys(localStorage).filter(key => 
             key.startsWith('supabase.auth.') || 
             key.includes('auth') || 
@@ -63,7 +58,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           );
           authKeys.forEach(key => localStorage.removeItem(key));
           
-          // Clear session storage selectively to preserve OAuth states
           const sessionKeys = Object.keys(sessionStorage).filter(key =>
             key.startsWith('supabase.auth.') ||
             (key.includes('auth') && !key.includes('oauth')) ||
@@ -72,7 +66,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           );
           sessionKeys.forEach(key => sessionStorage.removeItem(key));
           
-          // Only navigate away if this is an actual SIGNED_OUT event (not just no session)
           // and we're currently on a protected route
           if (event === 'SIGNED_OUT') {
             setTimeout(() => {
@@ -93,10 +86,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           setUser(session.user);
           setLoading(false);
           
-          // Update authHelper with the authenticated user
           authHelper.setUserFromContext(session.user);
           
-          // Only navigate if we're currently on auth page
           if (window.location.pathname === '/auth') {
             navigate('/dashboard');
           }
@@ -110,14 +101,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
           return;
         }
         
-        // For any other event, just update the state
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
       }
     );
 
-    // Check for existing session
     authService.getSession().then(({ session, error }) => {
       if (!mounted) return;
       
@@ -161,12 +150,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signOut = async () => {
     try {
-      // First, clear local state to immediately update UI
       setUser(null);
       setSession(null);
       setLoading(false);
       
-      // Clear auth-related storage items selectively
       try {
         // Get all localStorage keys before clearing
         const allKeys = Object.keys(localStorage);
@@ -183,7 +170,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           localStorage.removeItem(key);
         });
         
-        // Clear session storage selectively to preserve OAuth states
         const sessionKeys = Object.keys(sessionStorage).filter(key =>
           key.startsWith('supabase.auth.') ||
           (key.includes('auth') && !key.includes('oauth')) ||
@@ -192,7 +178,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         );
         sessionKeys.forEach(key => sessionStorage.removeItem(key));
         
-        // Clear YouTube OAuth states on sign-out since user is leaving
         const youtubeOAuthKeys = ['youtube_oauth_state', 'youtube_oauth_user_id'];
         youtubeOAuthKeys.forEach(key => {
           if (sessionStorage.getItem(key)) {
@@ -203,12 +188,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error('Error clearing storage:', storageError);
       }
 
-      // Try to sign out from Supabase (but don't wait for it)
       authService.signOut().catch(error => {
         console.error('Supabase signOut failed (non-blocking):', error);
       });
 
-      // Clear any service worker cache or other persistent storage
       try {
         if ('serviceWorker' in navigator) {
           const registrations = await navigator.serviceWorker.getRegistrations();
@@ -217,10 +200,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
       } catch (swError) {
-        // Silent error - service worker cleanup is best-effort
       }
 
-      // Clear IndexedDB (where Supabase might store data)
       try {
         if ('indexedDB' in window) {
           const databases = await indexedDB.databases();
@@ -231,17 +212,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
       } catch (idbError) {
-        // Silent error - IndexedDB cleanup is best-effort
       }
 
-      // Force clear cookies
       document.cookie.split(";").forEach(function(c) { 
         document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
       });
 
-      // Let the auth state listener handle navigation, but add a fallback
       setTimeout(() => {
-        // Fallback navigation if auth state listener doesn't fire
         const currentPath = window.location.pathname;
         const protectedRoutes = ['/dashboard', '/analytics', '/profile', '/settings', '/trending'];
         
@@ -251,10 +228,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }, 200); // Give auth state listener time to fire first
       
     } catch (error) {
-      // Emergency cleanup - force clear everything except OAuth states
       try {
         localStorage.clear();
-        // Preserve OAuth states in session storage during emergency cleanup
         const oauthStates: { [key: string]: string } = {};
         Object.keys(sessionStorage).forEach(key => {
           if (key.includes('oauth')) {
@@ -262,7 +237,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         });
         sessionStorage.clear();
-        // Restore OAuth states
         Object.entries(oauthStates).forEach(([key, value]) => {
           sessionStorage.setItem(key, value);
         });
@@ -273,7 +247,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error('Emergency cleanup failed:', e);
       }
       
-      // Emergency navigation only if auth state listener fails
       navigate('/', { replace: true });
       return { error };
     }

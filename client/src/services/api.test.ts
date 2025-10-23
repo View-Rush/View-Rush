@@ -6,25 +6,25 @@ describe('ApiService', () => {
   let mockSupabase: any;
 
   beforeEach(async () => {
-    // Reset all mocks
+
     vi.clearAllMocks();
     vi.resetModules();
 
-    // Mock fetch
+
     mockFetch = vi.fn();
     global.fetch = mockFetch;
 
-    // Mock supabase
+
     mockSupabase = {
       auth: {
         getSession: vi.fn(),
       },
     };
 
-    // Mock environment variables
+
     vi.stubEnv('VITE_API_URL', 'https://api.example.com');
 
-    // Mock supabase client
+
     vi.doMock('@/integrations/supabase/client', () => ({
       supabase: mockSupabase,
     }));

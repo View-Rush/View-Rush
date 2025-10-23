@@ -156,8 +156,6 @@ describe('Button Component', () => {
       
       const button = screen.getByRole('button', { name: new RegExp(`${variant} button`, 'i') });
       expect(button).toBeInTheDocument();
-      // Button components don't automatically get type="button" unless explicitly set
-      
       unmount();
     });
   });

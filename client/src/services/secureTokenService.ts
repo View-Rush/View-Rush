@@ -136,7 +136,7 @@ export class SecureTokenService {
     newAccessToken: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      // First get the current refresh token
+
       const currentTokens = await this.getTokens(connectionId);
       if (!currentTokens) {
         throw new Error('Could not retrieve current tokens');

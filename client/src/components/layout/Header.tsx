@@ -70,7 +70,6 @@ const Header = () => {
       await signOut();
     } catch (error) {
       console.error('Sign out error:', error);
-      // Fallback cleanup
       localStorage.clear();
       sessionStorage.clear();
       window.location.href = '/';
@@ -79,7 +78,6 @@ const Header = () => {
 
   const isActivePath = (path: string) => location.pathname === path;
 
-  // Components
   const Logo = () => (
     <Link to="/" className="flex items-center space-x-2">
       <div className="h-8 w-8 rounded-lg flex items-center justify-center overflow-hidden">

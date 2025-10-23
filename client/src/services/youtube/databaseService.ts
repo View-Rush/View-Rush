@@ -51,7 +51,7 @@ export class YouTubeDatabaseService {
   }
 
   
- // Get current YouTube connection status for the authenticated user
+
    
   async getConnectionStatus(): Promise<YouTubeConnectionStatus> {
 
@@ -82,7 +82,7 @@ export class YouTubeDatabaseService {
 
       const connection = connections[0];
 
-      // Check if token has expired
+
       if (connection.token_expires_at && new Date(connection.token_expires_at) <= new Date()) {
         return { isConnected: false };
       }
@@ -97,7 +97,7 @@ export class YouTubeDatabaseService {
   }
 
 
- // Save a new YouTube connection to the database
+
   async saveConnection(tokenData: TokenResponse, channelInfo: YouTubeChannel): Promise<ChannelConnection> {
 
     try {
@@ -106,14 +106,14 @@ export class YouTubeDatabaseService {
         throw errorHandler.createAuthError('User not authenticated');
       }
 
-      // Deactivate existing connections
+
       await this.deactivateExistingConnections(user.id);
 
-      // Calculate token expiration
+
       const expiresAt = new Date();
       expiresAt.setSeconds(expiresAt.getSeconds() + tokenData.expires_in);
 
-      // Prepare connection data
+
       const connectionData: ConnectionData = {
         user_id: user.id,
         platform: 'youtube',
@@ -132,7 +132,7 @@ export class YouTubeDatabaseService {
         tokens_encrypted: true,
       };
 
-    //  Insert connection
+
       const { data: insertedConnection, error: insertError } = await supabase
         .from('channel_connections')
         .insert(connectionData)
@@ -143,7 +143,7 @@ export class YouTubeDatabaseService {
         throw errorHandler.createDatabaseError('Failed to insert connection', insertError);
       }
 
-      // Store encrypted tokens
+
       const tokenResult = await SecureTokenService.storeTokens(insertedConnection.id,
         tokenData
       );
@@ -326,7 +326,7 @@ export class YouTubeDatabaseService {
     }
   }
 
-//  Deactivate existing YouTube connections for a user
+
   private async deactivateExistingConnections(userId: string): Promise<void> {
     const { error } = await supabase
       .from('channel_connections')

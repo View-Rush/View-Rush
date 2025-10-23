@@ -5,8 +5,6 @@
  * 
  * This script generates comprehensive test reports in multiple formats:
  * - HTML Report (interactive, visual)
- * - JUnit XML (CI/CD integration) 
- * - JSON Report (programmatic access)
  * - Coverage Reports (HTML, LCOV, Cobertura)
  */
 

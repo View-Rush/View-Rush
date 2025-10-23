@@ -19,8 +19,6 @@ describe('SignupProgress', () => {
     it('renders step descriptions', () => {
       render(<SignupProgress {...defaultProps} />);
       
-      // Note: Descriptions are not currently rendered in the component
-      // This test documents the expected behavior if descriptions were to be shown
       const accountStep = screen.getByText('Create Account').closest('div');
       const youtubeStep = screen.getByText('Connect YouTube').closest('div');
       

@@ -5,7 +5,7 @@ vi.unmock('@/services/authHelper');
 
 import { authHelper } from '@/services/authHelper';
 
-// Mock Supabase client - inline to avoid hoisting issues
+
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: {
@@ -110,7 +110,7 @@ describe('AuthHelper Service', () => {
     });
 
     it('should handle timeout scenarios', async () => {
-      // Mock a hanging promise that never resolves
+
       mockSupabase.auth.getUser.mockImplementation(
         () => new Promise(() => {}) // Promise that never resolves
       );
@@ -141,7 +141,7 @@ describe('AuthHelper Service', () => {
 
       authHelper.setUserFromContext(mockUser);
 
-      // Verify user is available immediately
+
       expect(authHelper.getUser()).resolves.toEqual(mockUser);
     });
 
@@ -168,14 +168,14 @@ describe('AuthHelper Service', () => {
       // Set user in context
       authHelper.setUserFromContext(mockUser);
 
-      // Verify user is cached
+
       const cachedUser = await authHelper.getUser();
       expect(cachedUser).toEqual(mockUser);
 
-      // Clear cache
+
       authHelper.clearCache();
 
-      // Mock new Supabase response
+
       mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: null },
         error: null,
@@ -205,15 +205,15 @@ describe('AuthHelper Service', () => {
         error: null,
       });
 
-      // First call
+
       await authHelper.getUser();
       expect(mockSupabase.auth.getUser).toHaveBeenCalledTimes(1);
 
-      // Second call within cache duration should use cache
+
       await authHelper.getUser();
       expect(mockSupabase.auth.getUser).toHaveBeenCalledTimes(1);
 
-      // Wait for cache to expire and test again
+
       // Note: In a real scenario, you'd need to mock Date.now() or use fake timers
       // For this test, we'll just verify the caching logic works for immediate calls
     });

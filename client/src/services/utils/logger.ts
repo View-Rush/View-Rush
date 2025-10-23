@@ -1,7 +1,3 @@
-// Logger utility for consistent logging throughout the application
-// In production, only errors are logged to console
-// Consider integrating with a logging service for production monitoring
-
 export enum LogLevel {
   DEBUG = 'debug',
   INFO = 'info',
@@ -24,8 +20,6 @@ class Logger {
   }
 
   private formatMessage(level: LogLevel, component: string, message: string, data?: any): void {
-    // In production, only log errors to console
-    // Other logs should be sent to a logging service
     if (this.isProduction && level !== LogLevel.ERROR) {
       return;
     }
@@ -36,7 +30,6 @@ class Logger {
     const logMethod = console[level as keyof Pick<Console, 'debug' | 'info' | 'warn' | 'error'>] || console.log;
     
     if (data) {
-      // Sanitize data to avoid logging sensitive information
       const sanitizedData = this.sanitizeData(data);
       logMethod(`${prefix} ${message}`, sanitizedData);
     } else {
@@ -45,7 +38,6 @@ class Logger {
   }
 
   private sanitizeData(data: any): any {
-    // Remove sensitive fields from logging
     if (typeof data === 'object' && data !== null) {
       const sanitized = { ...data };
       const sensitiveFields = ['password', 'token', 'access_token', 'refresh_token', 'apiKey', 'secret'];

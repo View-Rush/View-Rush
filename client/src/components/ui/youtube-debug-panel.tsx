@@ -131,7 +131,6 @@ export function YouTubeDebugPanel() {
 
         {results && (
           <div className="space-y-4">
-            {/* Environment Check */}
             <div>
               <h3 className="font-semibold mb-2">Environment Variables</h3>
               <div className="grid grid-cols-2 gap-2 text-sm">

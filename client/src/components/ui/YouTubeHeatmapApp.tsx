@@ -68,8 +68,6 @@ export default function YouTubeHeatmapApp() {
   const [topThree, setTopThree] = useState<{ dayIdx: number; hourIdx: number; score: number }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-
-  // Fetch video details from YouTube API
   const fetchYouTubeDetails = async (url: string) => {
     setAutoLoading(true);
     const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
@@ -79,7 +77,6 @@ export default function YouTubeHeatmapApp() {
       return;
     }
     try {
-      // Use public API key for demo (replace with your own key)
       const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
       if (!apiKey) {
         console.error('YouTube API key not configured');
@@ -114,7 +111,7 @@ export default function YouTubeHeatmapApp() {
   // Unified predict handler
   const handlePredict = async () => {
     setLoading(true);
-    setStep(2); // Move to step 2 to show loading state
+    setStep(2); 
     let payload = mode === 'link' ? autoDetails : { ...manualDetails };
     // Remove thumbnailFile from payload in manual mode
     if (mode === 'manual' && 'thumbnailFile' in payload) {
@@ -137,19 +134,18 @@ export default function YouTubeHeatmapApp() {
       } catch (err) {
         console.error('Thumbnail upload failed:', err);
         setLoading(false);
-        setStep(1); // Go back to step 1 on error
+        setStep(1);
         return;
       }
     }
     try {
-      // Call FastAPI backend
       const response = await apiService.getPredictions(payload) as PredictionResponse;
       setHeatmap(response.heatmap);
       setTopThree(response.topThree);
     } catch (error) {
-      // Handle error (show message, etc.)
+     
       console.error('Prediction failed:', error);
-      setStep(1); // Go back to step 1 on error
+      setStep(1); 
     }
     setLoading(false);
   };
@@ -202,7 +198,7 @@ export default function YouTubeHeatmapApp() {
                       }
                     }}
                   />
-                  {/* Video Preview and details */}
+                  
                   {autoLoading && (
                     <div className="flex items-center gap-2 text-primary"><Loader2 className="w-4 h-4 animate-spin" /> Fetching video details...</div>
                   )}
@@ -348,7 +344,7 @@ export default function YouTubeHeatmapApp() {
                 <div className="w-full overflow-x-auto flex justify-center px-4">
                   <div className="inline-block p-8 bg-muted/30 rounded-xl">
                   {(() => {
-                    // Flatten heatmap to get min and max
+                   
                     const flat = heatmap.flat();
                     const min = Math.min(...flat);
                     const max = Math.max(...flat);

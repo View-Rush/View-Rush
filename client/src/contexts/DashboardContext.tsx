@@ -98,19 +98,16 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
   const [isInitialized, setIsInitialized] = useState(false);
 
   const loadDashboardData = useCallback(async (forceRefresh = false) => {
-    // Skip if no user or no connections
     if (!user || !hasConnections) {
       setAnalyticsData(null);
       setIsInitialized(true);
       return;
     }
 
-    // Skip if data already loaded and not forcing refresh
     if (analyticsData && !forceRefresh) {
       return;
     }
 
-    // Check if connection process is in progress and block if so
     if (connectionStateManager.isConnecting()) {
       return;
     }
@@ -118,7 +115,6 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
     setLoading(true);
 
     try {
-      // Create a promise that rejects after 10 seconds
       const timeoutPromise = new Promise<never>((_, reject) => {
         setTimeout(() => {
           reject(new Error('Data loading timeout after 10 seconds'));
@@ -126,7 +122,6 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
       });
 
       try {
-        // Race the API call against the timeout
         const data = await Promise.race([
           youtubeService.getDashboardAnalytics(undefined, channelConnections),
           timeoutPromise
@@ -143,7 +138,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
             variant: "destructive",
           });
         } else {
-          throw timeoutError; // Re-throw non-timeout errors
+          throw timeoutError;
         }
       }
     } catch (error) {
@@ -159,7 +154,6 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children }
     }
   }, [user, hasConnections, channelConnections, analyticsData]);
 
-  // Initialize data only once when conditions are met
   useEffect(() => {
     if (!isInitialized && user && !connectionsLoading) {
       loadDashboardData();

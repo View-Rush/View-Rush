@@ -25,14 +25,14 @@ describe('SecureTokenService Mock Testing', () => {
     });
 
     it('should verify mocking infrastructure is working', () => {
-      // Test that vitest mocking is functional
+
       expect(vi).toBeDefined();
       expect(vi.mock).toBeDefined();
       expect(vi.fn).toBeDefined();
     });
 
     it('should allow mock imports', async () => {
-      // Test that we can import mocked modules
+
       expect(async () => {
         await vi.importMock('@/integrations/supabase/client');
       }).not.toThrow();
@@ -50,14 +50,14 @@ describe('SecureTokenService Mock Testing', () => {
         hasTokens: vi.fn()
       };
 
-      // Verify mock structure
+
       expect(mockSecureTokenService).toHaveProperty('storeTokens');
       expect(mockSecureTokenService).toHaveProperty('getTokens');
       expect(mockSecureTokenService).toHaveProperty('updateAccessToken');
       expect(mockSecureTokenService).toHaveProperty('deleteTokens');
       expect(mockSecureTokenService).toHaveProperty('hasTokens');
 
-      // Verify all methods are functions
+
       expect(typeof mockSecureTokenService.storeTokens).toBe('function');
       expect(typeof mockSecureTokenService.getTokens).toBe('function');
       expect(typeof mockSecureTokenService.updateAccessToken).toBe('function');
@@ -74,7 +74,7 @@ describe('SecureTokenService Mock Testing', () => {
         hasTokens: vi.fn().mockResolvedValue(true)
       };
 
-      // Test that mocked methods can be called
+
       expect(() => {
         mockService.storeTokens(mockConnectionId, mockTokenData);
         mockService.getTokens(mockConnectionId);
@@ -83,7 +83,7 @@ describe('SecureTokenService Mock Testing', () => {
         mockService.hasTokens(mockConnectionId);
       }).not.toThrow();
 
-      // Verify calls were tracked
+
       expect(mockService.storeTokens).toHaveBeenCalledWith(mockConnectionId, mockTokenData);
       expect(mockService.getTokens).toHaveBeenCalledWith(mockConnectionId);
       expect(mockService.updateAccessToken).toHaveBeenCalledWith(mockConnectionId, 'new-token');
@@ -107,7 +107,7 @@ describe('SecureTokenService Mock Testing', () => {
       mockService.deleteTokens.mockResolvedValue({ success: true });
       mockService.hasTokens.mockResolvedValue(false);
 
-      // Test return values
+
       const storeResult = await mockService.storeTokens(mockConnectionId, mockTokenData);
       const getResult = await mockService.getTokens(mockConnectionId);
       const updateResult = await mockService.updateAccessToken(mockConnectionId, 'new-token');
@@ -165,12 +165,12 @@ describe('SecureTokenService Mock Testing', () => {
         hasTokens: vi.fn()
       };
 
-      // Verify the interface supports security requirements
+
       expect(mockService.storeTokens).toBeDefined();
       expect(mockService.getTokens).toBeDefined();
       expect(mockService.deleteTokens).toBeDefined();
 
-      // Test that security-related operations can be mocked
+
       mockService.storeTokens.mockResolvedValue({ success: true });
       mockService.getTokens.mockResolvedValue({
         access_token: 'encrypted_access_token',
@@ -178,7 +178,7 @@ describe('SecureTokenService Mock Testing', () => {
       });
       mockService.deleteTokens.mockResolvedValue({ success: true });
 
-      // Verify security mock operations
+
       expect(() => {
         mockService.storeTokens(mockConnectionId, mockTokenData);
         mockService.getTokens(mockConnectionId);
@@ -196,7 +196,7 @@ describe('SecureTokenService Mock Testing', () => {
         storeTokens: vi.fn().mockResolvedValue({ success: true })
       };
 
-      // Verify mock can handle sensitive data
+
       expect(() => {
         mockService.storeTokens(mockConnectionId, sensitiveTokenData);
       }).not.toThrow();
@@ -285,7 +285,7 @@ describe('SecureTokenService Mock Testing', () => {
       await mockService.updateAccessToken(mockConnectionId, 'new-access-token');
       await mockService.deleteTokens(mockConnectionId);
 
-      // Verify lifecycle operations
+
       expect(hasTokensBefore).toBe(true);
       expect(tokens.access_token).toBe(mockTokenData.access_token);
       expect(mockService.storeTokens).toHaveBeenCalledWith(mockConnectionId, mockTokenData);
@@ -294,7 +294,7 @@ describe('SecureTokenService Mock Testing', () => {
     });
 
     it('should test service dependencies are mockable', () => {
-      // Test that dependencies can be mocked
+
       const mockSupabase = {
         rpc: vi.fn().mockResolvedValue({ data: { success: true }, error: null })
       };
@@ -304,7 +304,7 @@ describe('SecureTokenService Mock Testing', () => {
       expect(mockSupabase.rpc).toBeDefined();
       expect(mockToast).toBeDefined();
 
-      // Verify dependency mocks work
+
       expect(() => {
         mockSupabase.rpc('insert_encrypted_tokens_direct', {
           p_connection_id: mockConnectionId,
@@ -351,14 +351,14 @@ describe('SecureTokenService Mock Testing', () => {
     });
 
     it('should confirm testing framework compatibility', () => {
-      // Verify that our testing approach is compatible with Vitest
+
       expect(vi).toBeDefined();
       expect(describe).toBeDefined();
       expect(it).toBeDefined();
       expect(expect).toBeDefined();
       expect(beforeEach).toBeDefined();
 
-      // Verify mock functions work as expected
+
       const testMock = vi.fn();
       testMock('test');
       expect(testMock).toHaveBeenCalledWith('test');

@@ -215,7 +215,7 @@ class AuthService {
     }
   }
 
-  // Get current session
+
   async getSession(): Promise<{ session: Session | null; error: any }> {
     try {
       const { data, error } = await supabase.auth.getSession();
@@ -225,7 +225,7 @@ class AuthService {
     }
   }
 
-  // Get current user
+
   async getUser(): Promise<{ user: User | null; error: any }> {
     try {
       const { data, error } = await supabase.auth.getUser();

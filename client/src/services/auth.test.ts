@@ -13,7 +13,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-// Mock the toast hook
+
 vi.mock('@/hooks/use-toast', () => ({
   toast: vi.fn(),
 }));

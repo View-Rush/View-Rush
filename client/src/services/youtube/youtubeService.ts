@@ -65,7 +65,7 @@ export class YouTubeService {
   }
 
 
-//    Check if user has connected YouTube account
+
   async getConnectionStatus(): Promise<YouTubeConnectionStatus> {
     try {
       const status = await youtubeDatabaseService.getConnectionStatus();
@@ -76,22 +76,20 @@ export class YouTubeService {
     }
   }
 
-  
-// Connect YouTube account using popup OAuth flow   
   async connectAccount(): Promise<boolean> {
     try {
       if (!this.CLIENT_ID || !this.CLIENT_SECRET) {
         throw errorHandler.createConfigError('YouTube configuration is incomplete');
       }
 
-      // Open popup and get authorization code
+
       const oauthResult: OAuthResult = await popupOAuthHandler.authenticate({
         clientId: this.CLIENT_ID,
         redirectUri: this.REDIRECT_URI,
         scopes: this.SCOPES
       });
 
-      // Exchange code for tokens
+
       const tokenResponse = await youtubeApiClient.exchangeCodeForTokens(
         oauthResult.code,
         this.CLIENT_ID,
@@ -99,10 +97,9 @@ export class YouTubeService {
         this.REDIRECT_URI
       );
 
-      // Get channel information
       const channelInfo = await youtubeApiClient.getChannelInfo(tokenResponse.access_token);
 
-      // Check if the channel is already connected
+
       const existingConnections = await youtubeDatabaseService.getUserConnections();
       const existingConnection = existingConnections.find(
         connection => connection.channel_id === channelInfo.id
@@ -111,7 +108,7 @@ export class YouTubeService {
       if (existingConnection) {
         await youtubeDatabaseService.updateConnectionStatus(existingConnection.id, true);
 
-        // Deactivate other connections
+
         for (const connection of existingConnections) {
           if (connection.id !== existingConnection.id) {
         await youtubeDatabaseService.updateConnectionStatus(connection.id, false);
@@ -121,15 +118,13 @@ export class YouTubeService {
         // Save new connection to database
         await youtubeDatabaseService.saveConnection(tokenResponse, channelInfo);
 
-        // Deactivate other connections
+
         for (const connection of existingConnections) {
           await youtubeDatabaseService.updateConnectionStatus(connection.id, false);
         }
       }
 
-      // Sync initial analytics (non-blocking)
       this.syncChannelAnalytics().catch(() => {
-        // Silent failure for initial sync
       });
 
       toast({
@@ -144,7 +139,7 @@ export class YouTubeService {
     }
   }
 
-   // Disconnect YouTube account
+
   async disconnectAccount(connectionId?: string): Promise<void> {
     try {
       const connections = await youtubeDatabaseService.getUserConnections();
@@ -153,7 +148,6 @@ export class YouTubeService {
         throw errorHandler.createAuthError('No YouTube connections found');
       }
 
-      // Use provided connectionId or default to the first active connection
       const targetConnectionId = connectionId || connections.find(c => c.is_active)?.id;
       
       if (!targetConnectionId) {
@@ -193,7 +187,6 @@ export class YouTubeService {
    */
   async getChannelAnalytics(connectionId?: string, connections?: any[]): Promise<ChannelAnalytics | null> {
     try {
-      // Use provided connections or fetch from database
       const userConnections = connections || await youtubeDatabaseService.getUserConnections();
       
       if (userConnections.length === 0) {
@@ -233,7 +226,7 @@ export class YouTubeService {
       if (connection.is_active) {
         try {
           let tokens = await youtubeDatabaseService.getConnectionTokens(connection.id);
-          // Check if token is expired and refresh if needed
+
           if (connection.token_expires_at && new Date(connection.token_expires_at) <= new Date()) {
             if (tokens?.refresh_token) {
               const refreshed = await youtubeApiClient.refreshAccessToken(
@@ -373,7 +366,7 @@ export class YouTubeService {
 
       const performanceMetrics = this.calculatePerformanceMetrics(videos);
 
-      // Store analytics data
+
       await youtubeDatabaseService.storeAnalyticsData(connection.id, {
         subscriber_count: parseInt(channelInfo.statistics.subscriberCount || '0'),
         view_count: parseInt(channelInfo.statistics.viewCount || '0'),

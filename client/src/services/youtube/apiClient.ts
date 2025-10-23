@@ -66,7 +66,7 @@ export class YouTubeApiClient {
   }
 
   
- // Exchange authorization code for access tokens
+
    
   async exchangeCodeForTokens(
     code: string,
@@ -109,7 +109,7 @@ export class YouTubeApiClient {
   }
 
   
-// Refresh access token using refresh token
+
    
   async refreshAccessToken(
     refreshToken: string,
@@ -150,7 +150,7 @@ export class YouTubeApiClient {
   }
 
   
-//    Get channel information from YouTube API
+
   async getChannelInfo(accessToken: string): Promise<YouTubeChannel> {
 
     try {
@@ -181,7 +181,7 @@ export class YouTubeApiClient {
   }
 
   
- // Get channel videos
+
    
   async getChannelVideos(
     accessToken: string,
@@ -190,7 +190,7 @@ export class YouTubeApiClient {
   ): Promise<YouTubeVideo[]> {
 
     try {
-      // First, get video IDs from search
+
       const searchResponse = await this.makeAuthenticatedRequest(
         `/search?part=snippet&channelId=${channelId}&type=video&order=date&maxResults=${maxResults}`,
         accessToken
@@ -202,7 +202,7 @@ export class YouTubeApiClient {
 
       const videoIds = searchResponse.items.map((item: any) => item.id.videoId).join(',');
 
-      // Then get detailed video information, including privacy status
+
       const videosResponse = await this.makeAuthenticatedRequest(
         `/videos?part=snippet,statistics,status&id=${videoIds}`,
         accessToken
@@ -229,7 +229,7 @@ export class YouTubeApiClient {
   }
 
   
-// Get trending videos
+
    
   async getTrendingVideos(
     accessToken: string,
@@ -255,7 +255,7 @@ export class YouTubeApiClient {
         channelTitle: item.snippet.channelTitle,
         publishedAt: item.snippet.publishedAt,
         categoryId: item.snippet.categoryId,
-        // Extract statistics to top level for easier access
+
         viewCount: item.statistics?.viewCount || '0',
         likeCount: item.statistics?.likeCount || '0',
         commentCount: item.statistics?.commentCount || '0',
@@ -269,7 +269,7 @@ export class YouTubeApiClient {
   }
 
 
-//    Make an authenticated request to YouTube API
+
    
   private async makeAuthenticatedRequest(endpoint: string, accessToken: string): Promise<any> {
     const url = `${this.baseUrl}${endpoint}`;

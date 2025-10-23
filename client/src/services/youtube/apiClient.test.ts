@@ -1,6 +1,6 @@
 import { YouTubeApiClient, TokenResponse } from './apiClient';
 
-// Mock dependencies
+
 vi.mock('../utils/logger', () => ({
   logger: {
     info: vi.fn(),
@@ -22,7 +22,7 @@ vi.mock('../utils/errorHandler', () => ({
   },
 }));
 
-// Mock fetch globally
+
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
@@ -96,7 +96,7 @@ describe('YouTubeApiClient', () => {
         }
       );
 
-      // Verify the request body contains correct parameters
+
       const call = mockFetch.mock.calls[0];
       const body = call[1].body as URLSearchParams;
       expect(body.get('client_id')).toBe(mockConfig.clientId);
@@ -182,7 +182,7 @@ describe('YouTubeApiClient', () => {
         }
       );
 
-      // Verify the request body
+
       const call = mockFetch.mock.calls[0];
       const body = call[1].body as URLSearchParams;
       expect(body.get('client_id')).toBe(mockConfig.clientId);
@@ -409,7 +409,7 @@ describe('YouTubeApiClient', () => {
         },
       });
 
-      // Verify both API calls were made
+
       expect(mockFetch).toHaveBeenCalledTimes(2);
       expect(mockFetch).toHaveBeenNthCalledWith(
         1,

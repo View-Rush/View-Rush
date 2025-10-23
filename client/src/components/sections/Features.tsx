@@ -112,7 +112,7 @@ export const Features = () => {
           </p>
         </div>
 
-        {/* Features grid */}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           {features.map((feature, index) => (
             <Card 
@@ -122,10 +122,9 @@ export const Features = () => {
               onMouseLeave={() => setHoveredFeature(null)}
               onClick={() => navigate(feature.link)}
             >
-              {/* Background gradient effect */}
+              
               <div className={`absolute inset-0 ${feature.bgColor} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
               
-              {/* Sparkle animation */}
               <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:scale-110">
                 <Sparkles className="h-4 w-4 text-primary group-hover:rotate-12 transition-transform duration-300" />
               </div>
@@ -135,10 +134,10 @@ export const Features = () => {
                   <div className={`relative p-3 rounded-xl ${feature.bgColor} ${feature.hoverBg} group-hover:scale-110 transition-all duration-500 group-hover:rotate-6 overflow-hidden`}>
                     <feature.icon className={`h-6 w-6 ${feature.color} transition-all duration-300 group-hover:scale-110`} />
                     
-                    {/* Smooth glow effect instead of ping */}
+                    
                     <div className={`absolute inset-0 rounded-xl ${feature.bgColor} opacity-0 group-hover:opacity-30 transition-all duration-500 group-hover:scale-110`} />
                     
-                    {/* Ripple effect on hover */}
+                    
                     <div className={`absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-current opacity-0 group-hover:opacity-20 transition-all duration-300 group-hover:scale-125`} />
                   </div>
                   <div className="flex-1">
@@ -157,7 +156,7 @@ export const Features = () => {
                   {feature.description}
                 </p>
                 
-                {/* Stats and CTA */}
+                
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                     <Activity className="h-3 w-3" />
@@ -175,7 +174,7 @@ export const Features = () => {
           ))}
         </div>
 
-        {/* Enhanced Real-Time Data Processing showcase */}
+       
         <div className="bg-background/40 backdrop-blur-sm rounded-2xl p-8 border border-border/50 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 group">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div className="space-y-6">
@@ -195,7 +194,7 @@ export const Features = () => {
                 ensuring you always have access to the most current trends and insights.
               </p>
               
-              {/* Enhanced stats grid */}
+        
               <div className="grid grid-cols-2 gap-4">
                 <div className="group/stat text-center p-6 bg-primary/5 hover:bg-primary/10 rounded-xl border border-primary/20 hover:border-primary/40 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1">
                   <div className="relative">
@@ -224,7 +223,7 @@ export const Features = () => {
                 </div>
               </div>
               
-              {/* CTA Button */}
+              
               <Button 
                 className="w-full sm:w-auto group/btn"
                 onClick={() => navigate('/auth')}
@@ -234,10 +233,10 @@ export const Features = () => {
               </Button>
             </div>
             
-            {/* Enhanced visualization */}
+            
             <div className="flex justify-center">
               <div className="relative group/viz">
-                {/* Main circles with enhanced animations */}
+                
                 <div className="w-72 h-72 bg-gradient-primary/10 rounded-full flex items-center justify-center group-hover/viz:scale-105 transition-all duration-700 relative">
                   <div className="w-56 h-56 bg-gradient-primary/20 rounded-full flex items-center justify-center group-hover/viz:rotate-12 transition-all duration-700">
                     <div className="w-40 h-40 bg-gradient-primary/30 rounded-full flex items-center justify-center group-hover/viz:scale-110 transition-all duration-700">
@@ -245,7 +244,6 @@ export const Features = () => {
                     </div>
                   </div>
                   
-                  {/* Floating elements with smooth hover animations */}
                   <div className="absolute top-4 right-4 w-12 h-12 bg-success rounded-full flex items-center justify-center shadow-lg shadow-success/30 group-hover/viz:scale-110 group-hover/viz:shadow-success/50 transition-all duration-500">
                     <TrendingUp className="h-6 w-6 text-white group-hover/viz:rotate-12 transition-transform duration-500" />
                   </div>
@@ -259,7 +257,7 @@ export const Features = () => {
                   </div>
                 </div>
                 
-                {/* Orbiting elements with controlled animation */}
+               
                 <div className="absolute inset-0 group-hover/viz:animate-spin-slow transition-all duration-1000 group-hover/viz:duration-8000">
                   <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
                     <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/50 group-hover/viz:scale-110 transition-all duration-300">
