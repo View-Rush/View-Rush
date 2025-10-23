@@ -351,11 +351,11 @@ export default function YouTubeHeatmapApp() {
                       <div className="grid grid-cols-[80px_repeat(24,1fr)] gap-1 text-xs">
                         <div></div>
                         {hours.map((hour) => (
-                          <div key={hour} className="text-center text-zinc-400">{hour}</div>
+                          <div key={hour} className="text-center text-black">{hour}</div>
                         ))}
                         {heatmap.map((row: number[], dayIdx: number) => (
                           <React.Fragment key={dayIdx}>
-                            <div className="flex items-center justify-center text-zinc-300 font-medium">{days[dayIdx]}</div>
+                            <div className="flex items-center justify-center text-black font-medium">{days[dayIdx]}</div>
                             {row.map((score: number, hourIdx: number) => (
                               <div
                                 key={hourIdx}
@@ -370,7 +370,7 @@ export default function YouTubeHeatmapApp() {
                     );
                   })()}
                 </div>
-                <div className="mt-6 text-center text-zinc-400 text-sm">
+                <div className="mt-6 text-center text-black text-sm">
                   <p>Deeper red = higher predicted engagement</p>
                 </div>
                 {topThree.length > 0 && (
