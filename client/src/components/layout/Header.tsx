@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import logoImage from '@/assets/view-rush-logo.png';
 
 // Constants
 const NAVIGATION_ITEMS = [
@@ -83,7 +84,7 @@ const Header = () => {
     <Link to="/" className="flex items-center space-x-2">
       <div className="h-8 w-8 rounded-lg flex items-center justify-center overflow-hidden">
         <img 
-          src="/src/assets/view-rush-logo.png" 
+          src={logoImage} 
           alt="View Rush Logo" 
           className="h-full w-full object-contain"
         />
